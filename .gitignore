@@ -1,0 +1,16 @@
+node_modules
+.env*
+.eve
+.vercel
+.workflow-data
+.next
+.output
+.nitro
+dist
+.DS_Store
+*.tsbuildinfo
+.env*.local
+
+# Installed agent skills (pulled from external repos)
+agent/skills/eve/
+agent/skills/ai-elements/
