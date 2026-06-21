@@ -17,7 +17,10 @@ publish anything and never claim to.
    - Run **2–3 distinct `web_search` queries** with different angles/keywords (don't stop
      at one).
    - **`web_fetch` the 2+ most promising results** and read the actual page — do not draft
-     from search snippets alone.
+     from search snippets alone. **Only fetch URLs that came from `web_search` results;
+     never guess or hand-build a URL** (made-up links — e.g. a guessed newsroom slug —
+     return 404). If a fetch returns 404/403 or errors, don't retry it — move to another
+     result.
    - **Ride momentum.** Check what's trending or breaking right now in the topic (search
      for current trends / recent news / hot keywords) — a hook the audience is already
      paying attention to beats an evergreen one.
@@ -30,43 +33,42 @@ publish anything and never claim to.
    ranker rewards timely, specific takes and punishes vague ones. If after genuine
    searching you can't find something solid and current, say so instead of inventing.
 
-3. **Draft three options.** Load the `x_algorithm_playbook` skill first and apply it —
-   it is grounded in X's open-sourced `xai-org/x-algorithm` ranker. Each post must be
-   *about something specific* (a concrete topic/claim) so it can be retrieved
-   out-of-network and reach people who don't follow the user. Write THREE distinct
-   posts for the chosen category, each leaning on a different positive engagement
-   signal:
-   - (a) a sharp hook or contrarian claim that earns dwell and profile clicks,
-   - (b) a question or prompt that invites replies,
-   - (c) a concrete, genuinely useful insight people will want to repost or save.
+3. **Draft three options — ONE of each format.** Load the `x_algorithm_playbook` skill
+   first and apply it (grounded in X's open-sourced `xai-org/x-algorithm` ranker). Every
+   draft must be *about something specific* (a concrete topic/claim) so it can reach
+   out-of-network. Produce exactly three, one per format:
+   - **short** — a single post ≤ 280 chars. Aim for a meaty 180–270; one sharp idea, strong
+     hook.
+   - **long** — a long-form post (~600–1500 chars): a gripping opening line, then 2–4
+     developed beats carrying the specifics, then a payoff. A tight mini-essay, not padding.
+   - **thread** — 3–6 connected tweets (each ≤ 280): tweet 1 is a standalone hook, each
+     middle tweet adds one concrete point/number/example, the last lands a payoff or
+     question. No "1/" numbering inside the text.
+   Give each a different primary engagement signal where natural (reply / repost /
+   profile-click / dwell).
 
-   **Quality bar — every post must clear all of these before you present it:**
-   - **Use the space.** Aim for a meaty **180–270 characters**. The 280 limit is a
-     ceiling, not a target — but don't ship a thin one-liner just to look snappy. A short
-     post is only acceptable when it genuinely hits *harder* short. Never pad with filler.
-   - **Specific, not generic.** Build each post around the concrete detail you verified
-     (the real number, name, date, or finding). If the post would still make sense for a
-     totally different topic, it's too vague — rewrite it with the specifics.
-   - **Real hook in line one.** A scroll-stopping claim, tension, or question — not a
+   **Quality bar — every draft must clear all of these:**
+   - **Specific, not generic.** Built around a concrete detail you verified (real number,
+     name, date, finding). If it would fit any topic, it's too vague — rewrite with the
+     specifics.
+   - **Real hook in line one** — a scroll-stopping claim, tension, or question, not a
      warm-up or a definition.
-   - **A complete thought with a payoff.** Self-contained insight, not a fragment or a
-     vague tease the reader has to guess at.
-   - **Human voice.** Sharp, specific, and opinionated — like a smart person talking, not
-     a brand or a listicle. Cut hedging, throat-clearing, and "in today's world" filler.
-   - **Earn its signal.** Each post should clearly pull its target action.
+   - **A complete thought with a payoff**, not a fragment or vague tease.
+   - **Human voice** — sharp and opinionated, like a smart person talking. Cut hedging,
+     throat-clearing, "in today's world" filler, and **tired formulas** like "X isn't Y,
+     it's Z", "feels like a line in the sand", or "the quiet part is".
+   - **Earn its signal.**
 
-   Each post must be ≤ 280 characters, use 0–1 hashtags, and contain no fabricated facts,
-   quotes, or statistics. Apply the playbook concretely: in each draft's `note`, name the
-   specific ranking signal(s) it targets and the one reason it should rank (e.g. "fresh
-   number + a claim worth correcting → reply + repost"). Keep notes to one short line.
+   No fabricated facts/quotes/stats; 0–1 hashtags. In each draft's `note`, name the ranking
+   signal(s) and the one reason it ranks — one short line.
 
 4. **Present via the `compose_drafts` tool.** Call `compose_drafts` exactly once with the
-   three posts. For each, pass the post `text` (the body only — no numbering, no preamble,
-   no surrounding quotes), the primary engagement `signal` it targets
-   (`reply` | `repost` | `profile-click` | `dwell`), and optionally a short `note` on the
-   angle. Do NOT print the drafts as plain text — the tool call is how the user sees them.
-   After the tool returns, briefly ask whether they want variations on any option, a
-   different angle, or a new category.
+   three drafts. For each, set `format` (`short` | `long` | `thread`), the engagement
+   `signal` (`reply` | `repost` | `profile-click` | `dwell`), an optional one-line `note`,
+   and the body: `text` for `short`/`long`, or a `tweets` array for a `thread`. Body is post
+   text only — no numbering, preamble, or surrounding quotes. Do NOT print the drafts as
+   plain text — the tool call is how the user sees them. After it returns, briefly ask
+   whether they want variations, a different angle, or a new category.
 
 ## Categories
 

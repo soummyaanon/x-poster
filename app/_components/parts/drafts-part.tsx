@@ -7,6 +7,9 @@ import { type ReactNode, useCallback, useState } from "react";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Button } from "@/components/ui/button";
 import {
+  FORMAT_LABELS,
+  type Format,
+  MAX_LONG_CHARS,
   MAX_TWEET_CHARS,
   SIGNAL_LABELS,
   type Signal,
@@ -18,9 +21,11 @@ const X_INTENT_URL = "https://x.com/intent/post";
 const NEAR_LIMIT = MAX_TWEET_CHARS - 20;
 
 interface PartialDraft {
-  readonly text?: string;
+  readonly format?: Format;
   readonly signal?: Signal;
   readonly note?: string;
+  readonly text?: string;
+  readonly tweets?: string[];
 }
 
 function readDrafts(input: unknown): readonly PartialDraft[] {
@@ -32,6 +37,10 @@ function readDrafts(input: unknown): readonly PartialDraft[] {
     return (input as { drafts: PartialDraft[] }).drafts;
   }
   return [];
+}
+
+function intentUrl(text: string): string {
+  return `${X_INTENT_URL}?text=${encodeURIComponent(text)}`;
 }
 
 /** Render a post like X does: @mentions, #hashtags and links get the brand tint. */
@@ -75,17 +84,12 @@ function DraftCard({
   readonly index: number;
   readonly streaming: boolean;
 }) {
+  const format: Format = draft.format ?? "short";
+  const tweets = draft.tweets ?? [];
   const text = draft.text ?? "";
-  const chars = countChars(text);
-  const over = chars > MAX_TWEET_CHARS;
-  const near = !over && chars >= NEAR_LIMIT;
-  const tone = over
-    ? "text-destructive"
-    : near
-      ? "text-amber-600 dark:text-amber-400"
-      : "text-muted-foreground";
+  const hasContent = format === "thread" ? tweets.some((t) => t.length > 0) : text.length > 0;
 
-  if (streaming && text.length === 0) {
+  if (streaming && !hasContent) {
     return (
       <div className="rounded-2xl border border-border bg-card p-4">
         <Shimmer className="text-sm">{`Drafting option ${index + 1}…`}</Shimmer>
@@ -101,13 +105,17 @@ function DraftCard({
       transition={{ delay: index * 0.08, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -2 }}
     >
-      <header className="flex items-start gap-2.5">
+      <header className="flex items-center gap-2.5">
         <span className="grid size-9 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground">
           <UserRoundIcon className="size-4" />
         </span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block font-semibold text-foreground text-sm">You</span>
           <span className="block text-muted-foreground text-xs">@you · now</span>
+        </span>
+        <span className="shrink-0 rounded-full border border-border px-2 py-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
+          {FORMAT_LABELS[format]}
+          {format === "thread" ? ` · ${tweets.length}` : null}
         </span>
         {draft.signal ? (
           <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
@@ -116,46 +124,128 @@ function DraftCard({
         ) : null}
       </header>
 
-      <p className="mt-2.5 whitespace-pre-wrap text-[15px] text-foreground leading-normal">
-        {formatPost(text)}
-      </p>
+      {format === "thread" ? (
+        <ThreadBody tweets={tweets} />
+      ) : (
+        <p
+          className={cn(
+            "mt-2.5 whitespace-pre-wrap text-foreground",
+            format === "long"
+              ? "max-h-80 overflow-y-auto text-[14px] leading-relaxed"
+              : "text-[15px] leading-normal",
+          )}
+        >
+          {formatPost(text)}
+        </p>
+      )}
 
       {draft.note ? (
         <p className="mt-2 text-muted-foreground text-xs italic">{draft.note}</p>
       ) : null}
 
-      <footer className="mt-3 flex items-center justify-between gap-2 border-border border-t pt-2.5">
-        {/* action bar */}
-        <span className="flex items-center gap-2.5">
-          <span className="text-muted-foreground text-xs">Option {index + 1}</span>
-          <span className={cn("flex items-center gap-1.5", tone)}>
-            <CharRing ratio={chars / MAX_TWEET_CHARS} />
-            <span className="font-mono text-xs tabular-nums">
-              {chars}
-              <span className="text-muted-foreground">/{MAX_TWEET_CHARS}</span>
+      <Footer format={format} text={text} tweets={tweets} />
+    </motion.article>
+  );
+}
+
+function ThreadBody({ tweets }: { readonly tweets: readonly string[] }) {
+  return (
+    <ol className="mt-3 space-y-0">
+      {tweets.map((tweet, i) => {
+        const chars = countChars(tweet);
+        const over = chars > MAX_TWEET_CHARS;
+        return (
+          <li className="relative flex gap-3 pb-4 last:pb-0" key={i}>
+            <span className="flex flex-col items-center">
+              <span className="grid size-5 shrink-0 place-items-center rounded-full bg-muted font-mono text-[10px] text-muted-foreground tabular-nums">
+                {i + 1}
+              </span>
+              {i < tweets.length - 1 ? <span className="mt-1 w-px flex-1 bg-border" /> : null}
             </span>
-          </span>
-        </span>
+            <span className="min-w-0 flex-1">
+              <span className="block whitespace-pre-wrap text-[15px] text-foreground leading-normal">
+                {formatPost(tweet)}
+              </span>
+              <span className="mt-1 flex items-center gap-2">
+                <span
+                  className={cn(
+                    "font-mono text-[11px] tabular-nums",
+                    over ? "text-destructive" : "text-muted-foreground",
+                  )}
+                >
+                  {chars}/{MAX_TWEET_CHARS}
+                </span>
+                <CopyButton size="tiny" text={tweet} />
+              </span>
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function Footer({
+  format,
+  text,
+  tweets,
+}: {
+  readonly format: Format;
+  readonly text: string;
+  readonly tweets: readonly string[];
+}) {
+  if (format === "thread") {
+    const first = tweets[0] ?? "";
+    const all = tweets.join("\n\n");
+    return (
+      <footer className="mt-3 flex items-center justify-between gap-2 border-border border-t pt-2.5">
+        <span className="text-muted-foreground text-xs">{tweets.length} posts</span>
         <span className="flex items-center gap-1.5">
-          <CopyButton text={text} />
-          <Button
-            className="rounded-full"
-            onClick={() =>
-              window.open(
-                `${X_INTENT_URL}?text=${encodeURIComponent(text)}`,
-                "_blank",
-                "noopener,noreferrer",
-              )
-            }
-            size="sm"
-            type="button"
-            variant="default"
-          >
-            Post on X
-          </Button>
+          <CopyButton label="Copy all" text={all} />
+          <PostButton label="Post 1st" text={first} />
         </span>
       </footer>
-    </motion.article>
+    );
+  }
+
+  const chars = countChars(text);
+  const limit = format === "long" ? MAX_LONG_CHARS : MAX_TWEET_CHARS;
+  const over = chars > limit;
+  const near = format === "short" && !over && chars >= NEAR_LIMIT;
+  const tone = over
+    ? "text-destructive"
+    : near
+      ? "text-amber-600 dark:text-amber-400"
+      : "text-muted-foreground";
+
+  return (
+    <footer className="mt-3 flex items-center justify-between gap-2 border-border border-t pt-2.5">
+      <span className={cn("flex items-center gap-1.5", tone)}>
+        {format === "short" ? <CharRing ratio={chars / MAX_TWEET_CHARS} /> : null}
+        <span className="font-mono text-xs tabular-nums">
+          {chars}
+          <span className="text-muted-foreground">{format === "short" ? `/${limit}` : " chars"}</span>
+        </span>
+      </span>
+      <span className="flex items-center gap-1.5">
+        <CopyButton text={text} />
+        <PostButton text={text} />
+      </span>
+    </footer>
+  );
+}
+
+function PostButton({ label = "Post on X", text }: { readonly label?: string; readonly text: string }) {
+  return (
+    <Button
+      className="rounded-full"
+      onClick={() => window.open(intentUrl(text), "_blank", "noopener,noreferrer")}
+      size="sm"
+      type="button"
+      variant="default"
+    >
+      {label}
+    </Button>
   );
 }
 
@@ -167,15 +257,7 @@ function CharRing({ ratio }: { readonly ratio: number }) {
 
   return (
     <svg aria-hidden="true" height="16" viewBox="0 0 18 18" width="16">
-      <circle
-        cx="9"
-        cy="9"
-        fill="none"
-        opacity="0.2"
-        r={radius}
-        stroke="currentColor"
-        strokeWidth="2"
-      />
+      <circle cx="9" cy="9" fill="none" opacity="0.2" r={radius} stroke="currentColor" strokeWidth="2" />
       <circle
         cx="9"
         cy="9"
@@ -186,17 +268,21 @@ function CharRing({ ratio }: { readonly ratio: number }) {
         strokeDashoffset={dashOffset}
         strokeLinecap="round"
         strokeWidth="2"
-        style={{
-          transform: "rotate(-90deg)",
-          transformOrigin: "center",
-          transition: "stroke-dashoffset 0.4s ease",
-        }}
+        style={{ transform: "rotate(-90deg)", transformOrigin: "center", transition: "stroke-dashoffset 0.4s ease" }}
       />
     </svg>
   );
 }
 
-function CopyButton({ text }: { readonly text: string }) {
+function CopyButton({
+  label,
+  size = "sm",
+  text,
+}: {
+  readonly label?: string;
+  readonly size?: "sm" | "tiny";
+  readonly text: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   const onCopy = useCallback(async () => {
@@ -212,16 +298,22 @@ function CopyButton({ text }: { readonly text: string }) {
     }
   }, [text]);
 
+  if (size === "tiny") {
+    return (
+      <button
+        className="text-muted-foreground text-xs hover:text-foreground"
+        onClick={onCopy}
+        type="button"
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
+    );
+  }
+
   return (
-    <Button
-      className="rounded-full"
-      onClick={onCopy}
-      size="sm"
-      type="button"
-      variant="outline"
-    >
+    <Button className="rounded-full" onClick={onCopy} size="sm" type="button" variant="outline">
       {copied ? <CheckIcon className="size-3.5" /> : <CopyIcon className="size-3.5" />}
-      {copied ? "Copied" : "Copy"}
+      {label ?? (copied ? "Copied" : "Copy")}
     </Button>
   );
 }

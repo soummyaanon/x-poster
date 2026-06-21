@@ -3,25 +3,30 @@ import { composeDraftsInputSchema, validateDrafts } from "../lib/drafts.ts";
 
 export default defineTool({
   description:
-    "Present the three final X post drafts to the user. Call this exactly once, " +
-    "after research, with the three finished posts. Each `text` is the post body only " +
-    "(no preamble, no numbering, no surrounding quotes). Tag each with the single " +
-    "engagement `signal` it most targets. Optionally add a short `note` explaining the " +
-    "angle. Calling this tool IS how the user sees the drafts — never also print them as text.",
+    "Present the three final X drafts to the user — ONE of each format. Call exactly once, " +
+    "after research. For each draft set `format`, `signal`, and an optional one-line `note`:\n" +
+    "- format \"short\": a single post ≤280 chars in `text`.\n" +
+    "- format \"long\": a long-form X post (~600–1500 chars) in `text`.\n" +
+    "- format \"thread\": a `tweets` array of 3–6 connected posts, each ≤280 chars (no '1/' numbering).\n" +
+    "`text`/`tweets` is the post body only — no preamble, numbering, or surrounding quotes. " +
+    "Calling this tool IS how the user sees the drafts — never also print them as text.",
   inputSchema: composeDraftsInputSchema,
   execute({ drafts }) {
     return { drafts: validateDrafts(drafts) };
   },
   toModelOutput(output) {
     const summary = output.drafts
-      .map(
-        (draft, index) =>
-          `#${index + 1} ${draft.chars}/280${draft.over ? " (OVER LIMIT — shorten this one)" : ""} [${draft.signal}]`,
-      )
+      .map((draft, index) => {
+        const over = draft.units.filter((u) => u.over).length;
+        const sizes = draft.units.map((u) => u.chars).join("/");
+        return `#${index + 1} ${draft.format} [${draft.signal}] ${sizes}c${
+          over > 0 ? ` (${over} OVER LIMIT — shorten)` : ""
+        }`;
+      })
       .join("; ");
     return {
       type: "text",
-      value: `Presented ${output.drafts.length} drafts to the user: ${summary}.`,
+      value: `Presented ${output.drafts.length} drafts: ${summary}.`,
     };
   },
 });
