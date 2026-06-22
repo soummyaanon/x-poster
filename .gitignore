@@ -11,6 +11,7 @@ dist
 *.tsbuildinfo
 .env*.local
 
-# Installed agent skills (pulled from external repos)
-agent/skills/eve/
-agent/skills/ai-elements/
+# Builder-only skills for Claude Code (pulled from external repos).
+# Restore with: npx skills experimental_install
+.claude/skills/eve/
+.claude/skills/ai-elements/
