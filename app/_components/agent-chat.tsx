@@ -25,6 +25,7 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import { type Tier, TIERS, TIER_LABELS } from "@/agent/lib/drafts";
 import { DEFAULT_MODEL_ID, MODEL_LABEL } from "@/agent/lib/models";
 import { deriveUsage } from "@/lib/usage";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,9 @@ export function AgentChat() {
   const agent = useEveAgent();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  // The user's account tier. Premium by default; rides along with every turn as
+  // ephemeral client context so the agent drafts tier-appropriate formats.
+  const [tier, setTier] = useState<Tier>("premium");
   const isBusy = agent.status === "submitted" || agent.status === "streaming";
   const isEmpty = agent.data.messages.length === 0;
   const derivedUsage = useMemo(() => deriveUsage(agent.events), [agent.events]);
@@ -62,7 +66,7 @@ export function AgentChat() {
       return;
     }
     setMobileOpen(false);
-    await agent.send({ message: trimmed });
+    await agent.send({ message: trimmed, clientContext: { accountTier: tier } });
   };
 
   const handleSubmit = async (message: PromptInputMessage) => {
@@ -138,9 +142,10 @@ export function AgentChat() {
                 <div className="flex max-w-md flex-col items-center gap-4 text-center">
                   <h1 className="font-medium text-4xl tracking-tighter">Draft posts that rank</h1>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    Pick a category in the sidebar or type a topic. I&apos;ll research a timely
-                    angle and return three copy-paste-ready posts, each tuned for X&apos;s For You
-                    ranking.
+                    Pick a category or type a topic and I&apos;ll research a timely angle, then
+                    hand back copy-paste-ready posts tuned for X&apos;s For You ranking. Paste a
+                    post or link to get quote-post takes. Toggle Premium or Free below for the
+                    right format.
                   </p>
                 </div>
               </ConversationEmptyState>
@@ -183,6 +188,7 @@ export function AgentChat() {
                 <span className="rounded-md px-1.5 py-1 font-medium text-muted-foreground text-xs">
                   {MODEL_LABEL}
                 </span>
+                <TierToggle disabled={isBusy} onChange={setTier} tier={tier} />
                 <PromptInputActionMenu>
                   <PromptInputActionMenuTrigger />
                   <PromptInputActionMenuContent>
@@ -203,6 +209,44 @@ export function AgentChat() {
         </div>
       </main>
     </div>
+  );
+}
+
+function TierToggle({
+  disabled,
+  onChange,
+  tier,
+}: {
+  readonly disabled: boolean;
+  readonly onChange: (tier: Tier) => void;
+  readonly tier: Tier;
+}) {
+  return (
+    <span
+      className="inline-flex items-center rounded-full border border-border p-0.5"
+      role="group"
+      title="Account tier: Premium gets long single posts, Free gets a 280-char post and a thread."
+    >
+      {TIERS.map((value) => (
+        <button
+          aria-pressed={tier === value}
+          className={cn(
+            "rounded-full px-2 py-0.5 font-medium text-[11px] transition-colors disabled:opacity-50",
+            tier === value
+              ? value === "premium"
+                ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                : "bg-muted text-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+          disabled={disabled}
+          key={value}
+          onClick={() => onChange(value)}
+          type="button"
+        >
+          {TIER_LABELS[value]}
+        </button>
+      ))}
+    </span>
   );
 }
 

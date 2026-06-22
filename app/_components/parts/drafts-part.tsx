@@ -1,19 +1,21 @@
 "use client";
 
 import type { EveDynamicToolPart } from "eve/react";
-import { CheckIcon, CopyIcon, UserRoundIcon } from "lucide-react";
+import { CheckIcon, CopyIcon, QuoteIcon, UserRoundIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { type ReactNode, useCallback, useState } from "react";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Button } from "@/components/ui/button";
 import {
   FORMAT_LABELS,
+  FORMAT_TIER,
   type Format,
   MAX_LONG_CHARS,
   MAX_TWEET_CHARS,
   SIGNAL_LABELS,
   type Signal,
   countChars,
+  humanizeText,
 } from "@/agent/lib/drafts";
 import { cn } from "@/lib/utils";
 
@@ -28,15 +30,27 @@ interface PartialDraft {
   readonly tweets?: string[];
 }
 
-function readDrafts(input: unknown): readonly PartialDraft[] {
+interface Compose {
+  readonly drafts: readonly PartialDraft[];
+  readonly quoting?: string;
+}
+
+/** Read drafts from the streaming tool input and humanize every post string. */
+function readCompose(input: unknown): Compose {
   if (
     input &&
     typeof input === "object" &&
     Array.isArray((input as { drafts?: unknown }).drafts)
   ) {
-    return (input as { drafts: PartialDraft[] }).drafts;
+    const raw = input as { drafts: PartialDraft[]; quoting?: unknown };
+    const drafts = raw.drafts.map((draft) => ({
+      ...draft,
+      text: draft.text === undefined ? undefined : humanizeText(draft.text),
+      tweets: draft.tweets?.map((tweet) => humanizeText(tweet)),
+    }));
+    return { drafts, quoting: typeof raw.quoting === "string" ? raw.quoting : undefined };
   }
-  return [];
+  return { drafts: [] };
 }
 
 function intentUrl(text: string): string {
@@ -59,7 +73,7 @@ function formatPost(text: string): ReactNode[] {
 }
 
 export function DraftsPart({ part }: { readonly part: EveDynamicToolPart }) {
-  const drafts = readDrafts(part.input);
+  const { drafts, quoting } = readCompose(part.input);
   const streaming = part.state === "input-streaming";
 
   if (drafts.length === 0) {
@@ -68,6 +82,12 @@ export function DraftsPart({ part }: { readonly part: EveDynamicToolPart }) {
 
   return (
     <div className="flex flex-col gap-3">
+      {quoting ? (
+        <p className="flex items-center gap-1.5 text-muted-foreground text-xs">
+          <QuoteIcon className="size-3.5 shrink-0" />
+          <span className="truncate">Quoting {quoting}</span>
+        </p>
+      ) : null}
       {drafts.map((draft, index) => (
         <DraftCard draft={draft} index={index} key={index} streaming={streaming} />
       ))}
@@ -113,10 +133,7 @@ function DraftCard({
           <span className="block font-semibold text-foreground text-sm">You</span>
           <span className="block text-muted-foreground text-xs">@you · now</span>
         </span>
-        <span className="shrink-0 rounded-full border border-border px-2 py-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
-          {FORMAT_LABELS[format]}
-          {format === "thread" ? ` · ${tweets.length}` : null}
-        </span>
+        <TierBadge format={format} />
         {draft.signal ? (
           <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
             {SIGNAL_LABELS[draft.signal]}
@@ -145,6 +162,32 @@ function DraftCard({
 
       <Footer format={format} text={text} tweets={tweets} />
     </motion.article>
+  );
+}
+
+/** Tier-colored pill: "Premium · Long-form", "Free · Thread", or "Quote". */
+function TierBadge({ format }: { readonly format: Format }) {
+  const tier = FORMAT_TIER[format];
+  const tone =
+    tier === "premium"
+      ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+      : tier === "quote"
+        ? "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-400"
+        : "border-border bg-muted text-muted-foreground";
+  const label =
+    tier === "quote"
+      ? "Quote"
+      : `${tier === "premium" ? "Premium" : "Free"} · ${FORMAT_LABELS[format]}`;
+
+  return (
+    <span
+      className={cn(
+        "shrink-0 rounded-full border px-2 py-0.5 font-medium text-[10px] uppercase tracking-wide",
+        tone,
+      )}
+    >
+      {label}
+    </span>
   );
 }
 
