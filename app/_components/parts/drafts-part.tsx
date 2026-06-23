@@ -57,6 +57,29 @@ function intentUrl(text: string): string {
   return `${X_INTENT_URL}?text=${encodeURIComponent(text)}`;
 }
 
+/** Touch devices where the native X app can claim the intent link. */
+function isMobile(): boolean {
+  if (typeof navigator === "undefined") {
+    return false;
+  }
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+/**
+ * Open the X composer. On mobile we navigate the same tab so iOS Universal
+ * Links / Android App Links can hand off to the installed X app — a
+ * `window.open(_blank)` call is not eligible for that handoff and always lands
+ * in the mobile web composer. Desktop keeps the new-tab behaviour.
+ */
+function openIntent(text: string): void {
+  const url = intentUrl(text);
+  if (isMobile()) {
+    window.location.href = url;
+  } else {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+}
+
 /** Render a post like X does: @mentions, #hashtags and links get the brand tint. */
 function formatPost(text: string): ReactNode[] {
   return text.split(/(@\w+|#\w+|https?:\/\/\S+)/g).map((token, index) => {
@@ -282,7 +305,7 @@ function PostButton({ label = "Post on X", text }: { readonly label?: string; re
   return (
     <Button
       className="rounded-full"
-      onClick={() => window.open(intentUrl(text), "_blank", "noopener,noreferrer")}
+      onClick={() => openIntent(text)}
       size="sm"
       type="button"
       variant="default"
