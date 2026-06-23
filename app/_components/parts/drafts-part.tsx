@@ -57,6 +57,16 @@ function intentUrl(text: string): string {
   return `${X_INTENT_URL}?text=${encodeURIComponent(text)}`;
 }
 
+/**
+ * Fire a short haptic tap. Uses the Web Vibration API, which is supported on
+ * Android (Chrome/Firefox) but NOT on iOS Safari — iPhones silently no-op.
+ */
+function haptic(pattern: number | number[] = 10): void {
+  if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+    navigator.vibrate(pattern);
+  }
+}
+
 /** Touch devices where the native X app can claim the intent link. */
 function isMobile(): boolean {
   if (typeof navigator === "undefined") {
@@ -72,6 +82,7 @@ function isMobile(): boolean {
  * in the mobile web composer. Desktop keeps the new-tab behaviour.
  */
 function openIntent(text: string): void {
+  haptic();
   const url = intentUrl(text);
   if (isMobile()) {
     window.location.href = url;
@@ -357,6 +368,7 @@ function CopyButton({
     }
     try {
       await navigator.clipboard.writeText(text);
+      haptic([10, 30, 10]);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
