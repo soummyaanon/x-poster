@@ -4,6 +4,7 @@ import { PanelLeftCloseIcon, PlusIcon, XIcon } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SIGNAL_LABELS, SIGNALS } from "@/agent/lib/drafts";
 import { cn } from "@/lib/utils";
+import { XConnect } from "./x-connect";
 
 const BETA_TERMS_HREF = "https://vercel.com/docs/release-phases/public-beta-agreement";
 
@@ -129,6 +130,7 @@ export function AppSidebar({
         </ScrollArea>
 
         <div className="space-y-2 border-border border-t px-3 py-3">
+          <XConnect />
           <a
             className="inline-flex rounded-full border border-amber-500/30 px-2 py-0.5 font-medium text-amber-700 text-xs transition-colors hover:bg-amber-500/10 dark:text-amber-300"
             href={BETA_TERMS_HREF}

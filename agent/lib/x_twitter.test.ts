@@ -5,6 +5,7 @@ import {
   extractTweet,
   isAllowedSlug,
   isWriteSlug,
+  pickActiveXAccount,
   postThread,
   type ExecResult,
   type TwitterExec,
@@ -96,6 +97,30 @@ describe("describeComposioError", () => {
 
   it("handles a plain string or unknown value", () => {
     expect(describeComposioError("weird")).toBe("weird");
+  });
+});
+
+describe("pickActiveXAccount", () => {
+  it("finds the active twitter account among others", () => {
+    const acct = pickActiveXAccount([
+      { id: "a", toolkit: { slug: "github" }, status: "ACTIVE" },
+      { id: "b", toolkit: { slug: "twitter" }, status: "ACTIVE" },
+    ]);
+    expect(acct?.id).toBe("b");
+  });
+
+  it("ignores a twitter account that is not active", () => {
+    expect(
+      pickActiveXAccount([{ id: "b", toolkit: { slug: "twitter" }, status: "INITIATED" }]),
+    ).toBeNull();
+  });
+
+  it("accepts a flat toolkitSlug string and is case-insensitive", () => {
+    expect(pickActiveXAccount([{ id: "c", toolkitSlug: "TWITTER", status: "ACTIVE" }])?.id).toBe("c");
+  });
+
+  it("returns null for an empty list", () => {
+    expect(pickActiveXAccount([])).toBeNull();
   });
 });
 

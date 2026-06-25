@@ -9,6 +9,8 @@ import {
   TWITTER_TOOLKIT,
   describeComposioError,
   isAllowedSlug,
+  pickActiveXAccount,
+  type ConnectedAccount,
   type ExecResult,
 } from "./x_twitter.ts";
 
@@ -112,5 +114,78 @@ export async function findTwitterTools(query: string): Promise<DiscoveredTool[]>
       }));
   } catch {
     return [];
+  }
+}
+
+/** Connection status for the configured user's X account. */
+export interface XConnectionStatus {
+  readonly configured: boolean;
+  readonly connected: boolean;
+  readonly accountId?: string;
+}
+
+/**
+ * Whether the configured user has an active X connection. Uses Composio's
+ * connected-accounts list (no Twitter API call), so it's cheap to poll from the
+ * UI. Returns `connected: false` when not configured or on error.
+ */
+export async function getXConnection(): Promise<XConnectionStatus> {
+  const composio = getClient();
+  if (!composio) return { configured: false, connected: false };
+  try {
+    const res = await composio.connectedAccounts.list({ userIds: [getXUserId()] });
+    const items = (res?.items ?? []) as ConnectedAccount[];
+    const account = pickActiveXAccount(items);
+    return { configured: true, connected: Boolean(account), accountId: account?.id };
+  } catch {
+    return { configured: true, connected: false };
+  }
+}
+
+/** The Twitter auth config id to connect against (explicit override, else the enabled one). */
+async function resolveXAuthConfigId(composio: Composio): Promise<string | null> {
+  const override = process.env.COMPOSIO_AUTH_CONFIG_ID;
+  if (override) return override;
+  const res = await composio.authConfigs.list({ toolkit: "TWITTER" });
+  const items = res?.items ?? [];
+  if (items.length === 0) return null;
+  const enabled = items.filter((a) => a.status === "ENABLED");
+  return (enabled[0] ?? items[0]).id;
+}
+
+/** Result of starting an X OAuth connection. */
+export interface InitiateXResult {
+  readonly redirectUrl?: string;
+  readonly alreadyConnected?: boolean;
+  readonly error?: string;
+}
+
+/**
+ * Start the OAuth flow to connect the configured user's X account. Returns the
+ * URL the user must open to authorize, or `alreadyConnected` when a live
+ * connection already exists. Safe to call when already connected (no-op).
+ */
+export async function initiateXConnection(): Promise<InitiateXResult> {
+  const composio = getClient();
+  if (!composio) return { error: "X is not configured. Set COMPOSIO_API_KEY." };
+
+  const existing = await getXConnection();
+  if (existing.connected) return { alreadyConnected: true };
+
+  try {
+    const authConfigId = await resolveXAuthConfigId(composio);
+    if (!authConfigId) {
+      return {
+        error:
+          "No Twitter auth config exists in Composio. Create one with your X developer " +
+          "app credentials, then try again.",
+      };
+    }
+    const request = await composio.connectedAccounts.initiate(getXUserId(), authConfigId);
+    const redirectUrl = (request as { redirectUrl?: string })?.redirectUrl;
+    if (!redirectUrl) return { error: "Composio did not return an authorization URL." };
+    return { redirectUrl };
+  } catch (err) {
+    return { error: describeComposioError(err) };
   }
 }

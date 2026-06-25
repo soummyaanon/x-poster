@@ -124,6 +124,32 @@ export function describeComposioError(err: unknown): string {
   return String(err);
 }
 
+/** A Composio connected-account record (only the fields we read). */
+export interface ConnectedAccount {
+  readonly id: string;
+  readonly status?: string;
+  readonly toolkit?: { slug?: string } | string;
+  readonly toolkitSlug?: string;
+}
+
+/** The toolkit slug off a connected-account record, tolerant of shape. */
+function accountToolkit(acct: ConnectedAccount): string {
+  const fromObj = typeof acct.toolkit === "object" ? acct.toolkit?.slug : acct.toolkit;
+  return String(fromObj ?? acct.toolkitSlug ?? "").toLowerCase();
+}
+
+/**
+ * The active X (Twitter) account from a list of connected accounts, or null if
+ * none is connected and active. Used to show connection status in the UI.
+ */
+export function pickActiveXAccount(accounts: readonly ConnectedAccount[]): ConnectedAccount | null {
+  return (
+    accounts.find(
+      (a) => accountToolkit(a) === "twitter" && (a.status ?? "ACTIVE") === "ACTIVE",
+    ) ?? null
+  );
+}
+
 /** A posted tweet: its id and a permalink the user can open. */
 export interface PostedTweet {
   readonly id: string;
