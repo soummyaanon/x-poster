@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the Composio SDK so these tests never hit the network or post a real
 // tweet; we only assert what `executeTwitter` sends to the client.
-const { executeSpy, getRawSpy, ComposioCtor } = vi.hoisted(() => ({
+const { executeSpy, getRawSpy, listSpy, deleteSpy, ComposioCtor } = vi.hoisted(() => ({
   executeSpy: vi.fn(),
   getRawSpy: vi.fn(),
+  listSpy: vi.fn(),
+  deleteSpy: vi.fn(),
   ComposioCtor: vi.fn(),
 }));
 
@@ -12,15 +14,21 @@ vi.mock("@composio/core", () => ({
   Composio: ComposioCtor,
 }));
 
+// The full mocked instance shape used across these tests.
+function mockComposioInstance() {
+  return {
+    tools: { execute: executeSpy, getRawComposioTools: getRawSpy },
+    connectedAccounts: { list: listSpy, delete: deleteSpy },
+  };
+}
+
 describe("executeTwitter", () => {
   beforeEach(() => {
     vi.resetModules();
     executeSpy.mockReset();
     getRawSpy.mockReset();
     ComposioCtor.mockReset();
-    ComposioCtor.mockImplementation(function () {
-      return { tools: { execute: executeSpy, getRawComposioTools: getRawSpy } };
-    });
+    ComposioCtor.mockImplementation(mockComposioInstance);
     executeSpy.mockResolvedValue({ successful: true, data: { data: { id: "1" } }, error: null });
     process.env.COMPOSIO_API_KEY = "test-key";
     process.env.COMPOSIO_USER_ID = "default";
@@ -66,9 +74,7 @@ describe("findTwitterTools", () => {
     vi.resetModules();
     getRawSpy.mockReset();
     ComposioCtor.mockReset();
-    ComposioCtor.mockImplementation(function () {
-      return { tools: { execute: executeSpy, getRawComposioTools: getRawSpy } };
-    });
+    ComposioCtor.mockImplementation(mockComposioInstance);
     process.env.COMPOSIO_API_KEY = "test-key";
   });
 
@@ -93,5 +99,47 @@ describe("findTwitterTools", () => {
     const slugs = (await findTwitterTools("post")).map((t) => t.slug);
     expect(slugs).toContain("TWITTER_CREATION_OF_A_POST");
     expect(slugs).not.toContain("TWITTER_GET_OPENAPI_SPEC");
+  });
+});
+
+describe("disconnectX", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    listSpy.mockReset();
+    deleteSpy.mockReset();
+    ComposioCtor.mockReset();
+    ComposioCtor.mockImplementation(mockComposioInstance);
+    process.env.COMPOSIO_API_KEY = "test-key";
+    process.env.COMPOSIO_USER_ID = "default";
+  });
+
+  it("deletes the active X account and reports disconnected", async () => {
+    listSpy.mockResolvedValueOnce({
+      items: [{ id: "ca_1", toolkit: { slug: "twitter" }, status: "ACTIVE" }],
+    });
+    deleteSpy.mockResolvedValueOnce({});
+    const { disconnectX } = await import("./composio.ts");
+    const res = await disconnectX();
+    expect(deleteSpy).toHaveBeenCalledWith("ca_1");
+    expect(res.disconnected).toBe(true);
+  });
+
+  it("is idempotent when nothing is connected (no delete call)", async () => {
+    listSpy.mockResolvedValueOnce({ items: [] });
+    const { disconnectX } = await import("./composio.ts");
+    const res = await disconnectX();
+    expect(deleteSpy).not.toHaveBeenCalled();
+    expect(res.disconnected).toBe(true);
+  });
+
+  it("reports the error when delete fails", async () => {
+    listSpy.mockResolvedValueOnce({
+      items: [{ id: "ca_1", toolkit: { slug: "twitter" }, status: "ACTIVE" }],
+    });
+    deleteSpy.mockRejectedValueOnce(new Error("boom"));
+    const { disconnectX } = await import("./composio.ts");
+    const res = await disconnectX();
+    expect(res.disconnected).toBe(false);
+    expect(res.error).toContain("boom");
   });
 });

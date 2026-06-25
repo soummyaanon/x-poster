@@ -16,6 +16,8 @@ const POLL_TIMEOUT_MS = 180_000;
 export function XConnect() {
   const [status, setStatus] = useState<Status>("loading");
   const [connecting, setConnecting] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pollingRef = useRef(false);
 
@@ -74,6 +76,25 @@ export function XConnect() {
     }
   }, [refresh]);
 
+  const disconnect = useCallback(async () => {
+    setError(null);
+    setDisconnecting(true);
+    try {
+      const res = await fetch("/api/x/disconnect", { method: "POST" });
+      const data = (await res.json()) as { disconnected?: boolean; error?: string };
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+      setStatus("disconnected");
+      setConfirmDisconnect(false);
+    } catch {
+      setError("Could not reach the disconnect endpoint.");
+    } finally {
+      setDisconnecting(false);
+    }
+  }, []);
+
   // Stop polling if the component unmounts mid-flow.
   useEffect(() => () => void (pollingRef.current = false), []);
 
@@ -104,6 +125,37 @@ export function XConnect() {
         >
           {connecting ? "Waiting for authorization…" : "Connect X account"}
         </button>
+      ) : null}
+
+      {status === "connected" ? (
+        confirmDisconnect ? (
+          <div className="flex items-center gap-2">
+            <button
+              className="rounded-md border border-destructive/40 px-2 py-1 text-destructive text-xs transition-colors hover:bg-destructive/10 disabled:opacity-50"
+              disabled={disconnecting}
+              onClick={() => void disconnect()}
+              type="button"
+            >
+              {disconnecting ? "Disconnecting…" : "Confirm disconnect"}
+            </button>
+            <button
+              className="text-muted-foreground text-xs hover:text-foreground"
+              disabled={disconnecting}
+              onClick={() => setConfirmDisconnect(false)}
+              type="button"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            className="text-muted-foreground text-xs hover:text-foreground"
+            onClick={() => setConfirmDisconnect(true)}
+            type="button"
+          >
+            Disconnect
+          </button>
+        )
       ) : null}
 
       {error ? <p className="text-[11px] text-destructive leading-snug">{error}</p> : null}

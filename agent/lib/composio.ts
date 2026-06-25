@@ -189,3 +189,29 @@ export async function initiateXConnection(): Promise<InitiateXResult> {
     return { error: describeComposioError(err) };
   }
 }
+
+/** Result of disconnecting the X account. */
+export interface DisconnectXResult {
+  readonly disconnected: boolean;
+  readonly error?: string;
+}
+
+/**
+ * Remove the configured user's connected X account. Idempotent: if nothing is
+ * connected it reports success without calling delete. The agent can no longer
+ * post until the account is reconnected.
+ */
+export async function disconnectX(): Promise<DisconnectXResult> {
+  const composio = getClient();
+  if (!composio) return { disconnected: false, error: "X is not configured." };
+
+  const existing = await getXConnection();
+  if (!existing.connected || !existing.accountId) return { disconnected: true };
+
+  try {
+    await composio.connectedAccounts.delete(existing.accountId);
+    return { disconnected: true };
+  } catch (err) {
+    return { disconnected: false, error: describeComposioError(err) };
+  }
+}
