@@ -57,10 +57,6 @@ export default CASES.map((c) =>
         },
       });
 
-      // Expected per instructions, but the model occasionally skips it; track
-      // it as a metric instead of gating the build.
-      t.loadedSkill("x_algorithm_playbook").soft();
-
       if (!composed) {
         throw new Error("compose_drafts was never called; nothing to grade.");
       }
@@ -75,12 +71,14 @@ export default CASES.map((c) =>
       const bodies = bodiesOf(drafts).join("\n\n---\n\n");
       t.judge.autoevals
         .closedQA(
-          "Each post reads like a sharp, specific person wrote it: a real hook in the first line, " +
-            "at least one concrete detail (a name, number, or date), and no generic AI filler, " +
-            "throat-clearing, or hype phrases that only announce significance.",
+          "Each post reads like a sharp, specific builder wrote it (the voice of @karpathy, " +
+            "@rauchg, or @amritwt): a real hook in the first line, at least one concrete detail " +
+            "(a name or number), a genuine human voice with no generic AI filler, throat-clearing, " +
+            "or hype phrases that only announce significance, and no calendar date (no year, " +
+            "month name, or quarter) anywhere in the text.",
           { on: bodies },
         )
-        .atLeast(0.7);
+        .atLeast(0.8);
     },
   }),
 );

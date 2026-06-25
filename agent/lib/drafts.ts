@@ -77,6 +77,32 @@ export function humanizeText(text: string): string {
   return out;
 }
 
+// Calendar references a post must not contain: explicit years (2026), month
+// names (June), and fiscal quarters (Q3). Timeliness comes from naming the
+// actual thing, the version, the launch, the number, never from stamping the
+// date. Month names are matched case-sensitively (a leading capital) so the
+// everyday words "may" and "march" used as verbs don't trip the guard; a
+// lowercase month sitting next to a year is still caught by the year pattern.
+const DATE_PATTERNS: readonly RegExp[] = [
+  /\b(?:19|20)\d{2}\b/g, // a four-digit year, 1900-2099
+  /\b(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept|Sep|Oct|Nov|Dec)\b/g, // a capitalized month
+  /\bQ[1-4]\b/g, // a fiscal quarter
+];
+
+/**
+ * Calendar tokens (years, month names, quarters) found in a post body. An empty
+ * array means the body is clean. compose_drafts surfaces any hits so the model
+ * rewrites the draft without the date, and the drafts eval asserts none survive.
+ */
+export function findDateHits(text: string): string[] {
+  const hits: string[] = [];
+  for (const re of DATE_PATTERNS) {
+    const matches = text.match(re);
+    if (matches) hits.push(...matches);
+  }
+  return hits;
+}
+
 export const draftSchema = z.object({
   format: z.enum(FORMATS),
   signal: z.enum(SIGNALS),
@@ -121,6 +147,8 @@ export interface ValidatedUnit {
   readonly text: string;
   readonly chars: number;
   readonly over: boolean;
+  /** Calendar tokens found in this unit (years, months, quarters). Empty == clean. */
+  readonly dateHits: readonly string[];
 }
 export interface ValidatedDraft {
   readonly format: Format;
@@ -139,7 +167,7 @@ export function validateDrafts(drafts: readonly Draft[]): ValidatedDraft[] {
       units: unitsOf(draft).map((raw) => {
         const text = humanizeText(raw);
         const chars = countChars(text);
-        return { text, chars, over: chars > limit };
+        return { text, chars, over: chars > limit, dateHits: findDateHits(text) };
       }),
     };
   });

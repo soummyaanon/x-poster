@@ -1,12 +1,8 @@
----
-description: "Proven hook shapes and post structures that earn engagement on X. Load when drafting or revising posts, alongside the x_algorithm_playbook, to pick a strong structure for the specific point."
----
-
 # Viral post patterns (use as starting shapes, not fill-in-the-blank scripts)
 
 These are battle-tested structures for X posts. Treat them as scaffolding for a
 point you already have and verified, never as a way to manufacture a point you
-don't. The `x_algorithm_playbook` is the law: a pattern only helps if the post
+don't. The ranker playbook above is the law: a pattern only helps if the post
 is still specific, honest, and human. Adapt the shape in your own voice; do not
 paste the formula words.
 
@@ -14,13 +10,15 @@ paste the formula words.
 
 1. You already did the research and have a concrete, verified point.
 2. Pick the ONE pattern that fits that point best (not the other way around).
-3. Rewrite it in a natural human voice. The reader should never feel a template.
+3. Rewrite it in a natural human voice (see the Voice section). The reader should
+   never feel a template.
 4. Run it past the quality bar and the algorithm checklist before shipping.
 
 ## Hook shapes (the first line does the work)
 
-- **Be specific, not round.** Exact numbers and timeframes beat round ones. "cut
+- **Be specific, not round.** Exact numbers and durations beat round ones. "cut
   cold-start to 240ms" lands; "much faster" does not. Round numbers read as made up.
+  (Durations like "240ms" or "in a weekend" are great; a calendar date is not.)
 - **Curiosity gap.** State a surprising result, hold back the mechanism for one
   beat. "I shipped this in a weekend. The hard part wasn't the code."
 - **Bold claim, then proof.** Make the assertion, then immediately back it with

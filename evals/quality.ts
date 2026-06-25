@@ -8,6 +8,7 @@ import {
   type Draft,
   type Tier,
   TIER_FORMATS,
+  findDateHits,
   unitsOf,
   validateDrafts,
 } from "#lib/drafts.ts";
@@ -73,6 +74,13 @@ export function findViolations(tier: Tier, drafts: readonly Draft[]): string[] {
     rawUnits.forEach((raw, j) => {
       for (const { label, re } of BANNED_PATTERNS) {
         if (re.test(raw)) v.push(`${placeAt(j)}: banned phrase ${label}`);
+      }
+      // Hard date ban: no year, month name, or quarter in the post text.
+      const dates = findDateHits(raw);
+      if (dates.length > 0) {
+        v.push(
+          `${placeAt(j)}: calendar date ${dates.map((d) => `"${d}"`).join(", ")} (no year/month/quarter in post text)`,
+        );
       }
     });
 

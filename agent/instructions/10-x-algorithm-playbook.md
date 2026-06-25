@@ -1,8 +1,7 @@
----
-description: "How X's open-sourced 'For You' ranker scores posts, and how to write drafts that earn ranked reach. Load when drafting or revising X posts."
----
-
 # Writing for the X "For You" ranker
+
+> Always apply this when drafting or revising. It is the law the patterns and the
+> voice serve.
 
 Distilled from X's open-sourced recommendation system, `xai-org/x-algorithm`
 (the live For You stack). The named services:
@@ -19,9 +18,8 @@ Distilled from X's open-sourced recommendation system, `xai-org/x-algorithm`
 - `candidate-pipeline`: the shared framework. Defines the Source, Hydrator,
   Filter, Scorer, Selector, and SideEffect traits the rest is built from.
 
-Use this when drafting or revising posts. The goal is **ranked reach**: getting
-scored highly and surviving the filters, not raw follower count, which we can't
-control from the text alone.
+The goal is **ranked reach**: getting scored highly and surviving the filters, not
+raw follower count, which we can't control from the text alone.
 
 ## The path a post takes (and where you can win)
 
@@ -86,7 +84,9 @@ control from the text alone.
 - **Quality gate is real (`grox`).** Spammy, low-effort, or abusive patterns get
   filtered before ranking. Substance is a prerequisite, not a bonus.
 - **Timeliness helps (age filter).** Fresh, current angles survive; this is why
-  research looks for *recent* developments.
+  research looks for *recent* developments. Note: this is about picking a *fresh
+  topic*, not about writing a date into the post. Name the new thing, don't stamp
+  the calendar.
 - **Space posts out (Author Diversity Scorer).** Bursts from one author get
   attenuated; one strong post beats three rushed ones.
 - **Each post stands alone (candidate isolation).** No thread context props it up;

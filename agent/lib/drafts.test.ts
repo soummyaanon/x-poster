@@ -3,6 +3,7 @@ import {
   MAX_TWEET_CHARS,
   composeDraftsInputSchema,
   countChars,
+  findDateHits,
   humanizeText,
   validateDrafts,
 } from "./drafts";
@@ -42,7 +43,54 @@ describe("humanizeText", () => {
   });
 });
 
+describe("findDateHits", () => {
+  it("catches a four-digit year", () => {
+    expect(findDateHits("the model that shipped in 2026")).toEqual(["2026"]);
+  });
+
+  it("catches a capitalized month and its abbreviation", () => {
+    expect(findDateHits("the June release")).toEqual(["June"]);
+    expect(findDateHits("back in Dec")).toEqual(["Dec"]);
+  });
+
+  it("catches a fiscal quarter", () => {
+    expect(findDateHits("Q3 earnings beat")).toEqual(["Q3"]);
+  });
+
+  it("catches every date token in a body", () => {
+    const hits = findDateHits("Launched June 2026, more in Q1");
+    expect(hits).toEqual(expect.arrayContaining(["2026", "June", "Q1"]));
+    expect(hits).toHaveLength(3);
+  });
+
+  it("ignores lowercase 'may' and 'march' used as ordinary words", () => {
+    expect(findDateHits("this may work once companies march toward it")).toEqual([]);
+  });
+
+  it("ignores plain numbers that are not years", () => {
+    expect(findDateHits("cut cold start to 240ms, aim for 280 chars")).toEqual([]);
+  });
+
+  it("does not treat a decade like 2010s as a bare year", () => {
+    expect(findDateHits("the 2010s were a different web")).toEqual([]);
+  });
+});
+
 describe("validateDrafts", () => {
+  it("surfaces calendar dates per unit", () => {
+    const [result] = validateDrafts([
+      { format: "short", text: "huge news for June 2026", signal: "reply" },
+    ]);
+    expect(result.units[0].dateHits).toEqual(expect.arrayContaining(["2026", "June"]));
+  });
+
+  it("leaves dateHits empty for a clean post", () => {
+    const [result] = validateDrafts([
+      { format: "short", text: "the new model reviews its own diffs now", signal: "dwell" },
+    ]);
+    expect(result.units[0].dateHits).toEqual([]);
+  });
+
   it("flags an over-limit short post", () => {
     const long = "x".repeat(MAX_TWEET_CHARS + 1);
     const [result] = validateDrafts([{ format: "short", text: long, signal: "reply" }]);

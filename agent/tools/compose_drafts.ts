@@ -13,8 +13,10 @@ export default defineTool({
     "each a take to post above the quoted post (max 280 chars, in `text`), and set top-level " +
     "`quoting` to the source URL or a short label.\n" +
     "For each draft set `format`, `signal`, and an optional one-line `note`. `text`/`tweets` is " +
-    "the post body only: no preamble, numbering, or surrounding quotes. Never use em dashes. " +
-    "Calling this tool IS how the user sees the drafts; never also print them as text.",
+    "the post body only: no preamble, numbering, or surrounding quotes. Never use em dashes, and " +
+    "never put a calendar date in the post (no year, month name, or quarter; name the actual " +
+    "thing, not the date). If this tool flags a draft as over the limit or dated, fix that draft " +
+    "and call it again. Calling this tool IS how the user sees the drafts; never also print them as text.",
   inputSchema: composeDraftsInputSchema,
   execute({ drafts }) {
     return { drafts: validateDrafts(drafts) };
@@ -22,16 +24,27 @@ export default defineTool({
   toModelOutput(output) {
     const summary = output.drafts
       .map((draft, index) => {
-        const over = draft.units.filter((u) => u.over).length;
         const sizes = draft.units.map((u) => u.chars).join("/");
+        const flags: string[] = [];
+        const over = draft.units.filter((u) => u.over).length;
+        if (over > 0) flags.push(`${over} OVER LIMIT, shorten`);
+        const dates = [...new Set(draft.units.flatMap((u) => u.dateHits))];
+        if (dates.length > 0) {
+          flags.push(`REMOVE the date (${dates.join(", ")}); name the thing, not the date`);
+        }
         return `#${index + 1} ${draft.format} [${draft.signal}] ${sizes}c${
-          over > 0 ? ` (${over} OVER LIMIT, shorten)` : ""
+          flags.length > 0 ? ` (${flags.join("; ")})` : ""
         }`;
       })
       .join("; ");
+    const needsFix = output.drafts.some((d) =>
+      d.units.some((u) => u.over || u.dateHits.length > 0),
+    );
     return {
       type: "text",
-      value: `Presented ${output.drafts.length} drafts: ${summary}.`,
+      value:
+        `Presented ${output.drafts.length} drafts: ${summary}.` +
+        (needsFix ? " Fix the flagged drafts and call compose_drafts again." : ""),
     };
   },
 });
