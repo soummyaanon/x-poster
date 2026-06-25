@@ -11,10 +11,12 @@
     "dev": "next dev",
     "start": "next start",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "connect:x": "node --env-file=.env.local scripts/connect-x.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.73",
+    "@composio/core": "^0.12.0",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@rive-app/react-webgl2": "^4.29.1",
     "@shikijs/core": "4.1.0",
