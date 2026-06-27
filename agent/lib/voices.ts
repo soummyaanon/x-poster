@@ -29,6 +29,13 @@ export interface VoicePreset {
   readonly blurb: string;
   /** Style descriptor the model emulates: cadence, diction, signature moves. */
   readonly profile: string;
+  /**
+   * 2-3 synthetic cadence exemplars: short lines written to capture this voice's
+   * rhythm, not real quotes. Injected with the profile so the model has concrete
+   * few-shot anchors (the single biggest lever for voice fidelity), never copied
+   * verbatim and never presented as something the person actually said.
+   */
+  readonly examples: readonly string[];
 }
 
 export interface VoiceSelection {
@@ -51,10 +58,15 @@ export const VOICE_PRESETS: readonly VoicePreset[] = [
     label: "House blend",
     blurb: "Default builder/founder mix",
     profile:
-      "The house blend: tight, declarative, concrete, a little dry, zero corporate fluff. " +
-      "First person from the work. One idea per post. Short sentences carry weight; vary length. " +
-      "Have a take. Name the tool, number, company, result. Humor when true, not performed. " +
-      "Match the rhythm of @karpathy, @rauchg, @amritwt, @theo on tech/builder X.",
+      "The house blend: the rhythm of working builders and founders on X (@karpathy, @rauchg, " +
+      "@amritwt, @theo). Tight, declarative, concrete, a little dry, zero corporate fluff, " +
+      "technical fluency worn lightly. First person from the work. One idea per post. Short " +
+      "sentences carry weight; vary length so it never drones. Have a take. Name the tool, the " +
+      "number, the company, the result. Humor only when it's true, never performed.",
+    examples: [
+      "Most 'AI agents' are a while loop with anxiety. The hard part was never the loop. It's knowing when to stop.",
+      "The best deploy is the one nobody noticed. No banner, no maintenance window. It just got faster.",
+    ],
   },
   {
     id: "elon",
@@ -62,10 +74,15 @@ export const VOICE_PRESETS: readonly VoicePreset[] = [
     handle: "@elonmusk",
     blurb: "Terse, blunt, meme-adjacent",
     profile:
-      "Ultra-short, blunt, sometimes absurd or meme-adjacent. One line can be the whole post. " +
-      "Declarative, no hedging, no corporate polish. Mix technical claims with dry humor or " +
-      "provocation. Rarely threads; each post stands alone. Never explain at length what one " +
-      "sentence can carry. No PR voice, no signposting.",
+      "Elon Musk's posting style: ultra-short and blunt, often a single line that is the whole " +
+      "post. Flat declarative verdicts, no hedging, no setup, no corporate polish. Pairs a hard " +
+      "first-principles or technical claim with dry humor or provocation. Lowercase-casual is " +
+      "fine. Rarely threads; each post stands alone. Never explains at length what one sentence " +
+      "can carry, never signposts, never sounds like PR.",
+    examples: [
+      "Most software is just bureaucracy with a UI.",
+      "The factory is the product. Everyone keeps missing this.",
+    ],
   },
   {
     id: "naval",
@@ -73,10 +90,15 @@ export const VOICE_PRESETS: readonly VoicePreset[] = [
     handle: "@naval",
     blurb: "Aphoristic, philosophical",
     profile:
-      "Compact aphorisms with philosophical undertone, but earned from specifics, not hollow " +
-      "formulas. Parallel structure sparingly. Timeless framing without calendar dates. " +
-      "Second person or universal 'you' more than first person. Calm certainty, no hype. " +
-      "Avoid fake-deep 'X is the Y of Z' templates; each line should compress a real insight.",
+      "Naval's style: compact aphorisms with a philosophical undertone, but earned from " +
+      "specifics, never hollow templates. Present tense, universal or second-person 'you' more " +
+      "than first person. Calm certainty, no hype, no dates. Often two short lines that compound: " +
+      "the claim, then the mechanism. Avoid fake-deep 'X is the Y of Z' formulas; each line " +
+      "should compress a real insight you could defend.",
+    examples: [
+      "You don't get rich renting out your time. You get rich owning things that earn while you sleep.",
+      "Specific knowledge can't be taught, only mentored. If someone can be trained to do your job, eventually someone will be.",
+    ],
   },
   {
     id: "paul-graham",
@@ -84,10 +106,14 @@ export const VOICE_PRESETS: readonly VoicePreset[] = [
     handle: "@paulg",
     blurb: "Essayist clarity, one sharp claim",
     profile:
-      "Essayist clarity compressed for X: one sharp claim, often contrarian, explained in plain " +
-      "English. Simple words, precise logic. Gentle tone but firm take. Analogies from everyday " +
-      "life or startups. No jargon piles, no listicle energy. Often ends on the implication, " +
-      "not a call to action.",
+      "Paul Graham's style: essayist clarity compressed for X. One sharp, often contrarian claim " +
+      "explained in plain English with simple words and precise logic. Calm tone, firm take. " +
+      "Analogies from startups or everyday life. No jargon piles, no listicle energy, no hype. " +
+      "Often ends on the implication rather than a call to action.",
+    examples: [
+      "The startups that win often look like toys at first. Toys are easy to dismiss, and being dismissed is the best cover a company can have.",
+      "Don't ask how to get users. Ask what would make the users you already have tell their friends.",
+    ],
   },
   {
     id: "karpathy",
@@ -95,10 +121,15 @@ export const VOICE_PRESETS: readonly VoicePreset[] = [
     handle: "@karpathy",
     blurb: "First-person builder, technical",
     profile:
-      "First-person builder thinking out loud. Technical fluency worn lightly. Concrete " +
-      "observations from what you just saw, built, or read. Calm, curious, not performative. " +
-      "Threads when the idea needs steps; each tweet one beat. Numbers and names when you have " +
-      "them. No hype adjectives, no 'game-changer' framing.",
+      "Karpathy's style: first-person builder thinking out loud. Technical fluency worn lightly. " +
+      "Concrete observations from what you just saw, built, or read, not abstractions. Calm, " +
+      "curious, never performative. lowercase-casual is fine. Threads when an idea needs steps, " +
+      "one beat per tweet. Numbers and names when you have them. No hype adjectives, no " +
+      "'game-changer' framing.",
+    examples: [
+      "spent the morning watching the model debug its own code. wrote a failing test first, then fixed it. nobody told it to do that part. that's the new bit.",
+      "neural nets want to work. most of the time you're just removing the bugs that are stopping them.",
+    ],
   },
   {
     id: "sam-altman",
@@ -106,10 +137,14 @@ export const VOICE_PRESETS: readonly VoicePreset[] = [
     handle: "@sama",
     blurb: "Measured optimism, big-picture",
     profile:
-      "Measured optimism about technology and institutions. Big-picture framing grounded in one " +
-      "specific detail. Short to medium posts, rarely punchy for its own sake. Confident but not " +
-      "loud; avoids dunking. Forward-looking without fake urgency. No sycophancy, no 'exciting " +
-      "times ahead' closers.",
+      "Sam Altman's style: measured optimism about technology and institutions. Big-picture " +
+      "framing grounded in one specific detail. Short to medium posts, calm and confident, never " +
+      "loud or punchy for its own sake. Forward-looking without fake urgency, never dunks, never " +
+      "sycophantic. Understated 'we think' framing. No 'exciting times ahead' closers.",
+    examples: [
+      "The cost of intelligence is going to fall a lot. Most people are still pricing their plans as if it won't.",
+      "We usually overestimate what happens in a year and underestimate what happens in a decade. Feels true again.",
+    ],
   },
   {
     id: "pieter-levels",
@@ -117,10 +152,15 @@ export const VOICE_PRESETS: readonly VoicePreset[] = [
     handle: "@levelsio",
     blurb: "Indie hacker, numbers-first",
     profile:
-      "Indie hacker energy: revenue, users, ships, constraints. Numbers-first, anti-corporate, " +
-      "slightly irreverent. First person, what you actually did today. Short sentences, occasional " +
-      "ALL CAPS for emphasis (sparingly). Transparent about wins and failures. No VC pitch voice, " +
-      "no abstract 'landscape' talk.",
+      "Pieter Levels' style: indie hacker energy. Revenue, users, ships, constraints. " +
+      "Numbers-first, anti-corporate, slightly irreverent. First person, what you actually did " +
+      "today. Short sentences, lowercase-casual, occasional ALL CAPS on one word for emphasis " +
+      "(sparingly). Transparent about wins and failures. No VC pitch voice, no abstract " +
+      "'landscape' talk.",
+    examples: [
+      "shipped a new feature in 3 hours today. no meetings, no jira, no standup. solo is a cheat code.",
+      "this ugly little site makes $4k/mo. built it in a weekend. people don't pay for pretty, they pay for working.",
+    ],
   },
 ] as const;
 
@@ -129,6 +169,20 @@ const PRESET_BY_ID: Readonly<Record<Exclude<VoiceId, "custom">, VoicePreset>> = 
 ) as Record<Exclude<VoiceId, "custom">, VoicePreset>;
 
 export const DEFAULT_VOICE_ID: VoiceId = "house";
+
+/**
+ * Render a preset's synthetic exemplars as a labeled block appended to the
+ * injected profile. They are cadence anchors only: the label tells the model to
+ * match the rhythm, never to copy the lines or pass them off as real quotes.
+ */
+function formatExamples(examples: readonly string[]): string {
+  if (examples.length === 0) return "";
+  return (
+    "\n\nCadence references (synthetic, written to capture this voice's rhythm only" +
+    " — match the shape, never copy a line and never present one as a real quote):\n" +
+    examples.map((e) => `- ${e}`).join("\n")
+  );
+}
 
 export function isVoiceId(value: string): value is VoiceId {
   return (VOICE_IDS as readonly string[]).includes(value);
@@ -190,6 +244,7 @@ export function resolveVoiceContext(selection: VoiceSelection | undefined): Voic
     profile:
       preset.profile +
       " Style only: emulate cadence and diction, never impersonate or fabricate quotes " +
-      "attributed to this person. Posts go out on the user's own account.",
+      "attributed to this person. Posts go out on the user's own account." +
+      formatExamples(preset.examples),
   };
 }

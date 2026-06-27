@@ -24,6 +24,18 @@ describe("voice catalog", () => {
     }
   });
 
+  it("every preset ships at least two cadence exemplars", () => {
+    for (const preset of VOICE_PRESETS) {
+      expect(preset.examples.length).toBeGreaterThanOrEqual(2);
+      for (const ex of preset.examples) {
+        expect(ex.trim().length).toBeGreaterThan(15);
+        // Exemplars must be clean: no em dashes, no calendar dates (same bar as drafts).
+        expect(ex).not.toMatch(/[‒–—―]/);
+        expect(ex).not.toMatch(/\b(?:19|20)\d{2}\b/);
+      }
+    }
+  });
+
   it("includes house as the default preset", () => {
     expect(DEFAULT_VOICE_ID).toBe("house");
     expect(PRESET_VOICE_IDS).toContain("house");
@@ -64,6 +76,13 @@ describe("resolveVoiceContext", () => {
     expect(ctx.id).toBe("karpathy");
     expect(ctx.label).toBe("Karpathy");
     expect(ctx.profile).toContain("Style only");
+  });
+
+  it("injects the preset's cadence exemplars into the resolved profile", () => {
+    const ctx = resolveVoiceContext({ id: "naval" });
+    expect(ctx.profile).toContain("Cadence references");
+    // The actual exemplar text reaches the model, not just the label.
+    expect(ctx.profile).toContain("earn while you sleep");
   });
 
   it("builds custom @handle profile", () => {
