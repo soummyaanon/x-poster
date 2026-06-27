@@ -108,6 +108,76 @@ export function findDateHits(text: string): string[] {
   return hits;
 }
 
+/**
+ * AI "tells" the humanizer bans (see the Human voice section of the base
+ * instructions and agent/instructions/25-humanizer.md). These are detected
+ * deterministically so `compose_drafts` can force a rewrite in production, the
+ * same way it does for calendar dates, instead of trusting the model's silent
+ * self-audit (which has been letting tells through). The drafts eval grades the
+ * same list, so the runtime gate and the eval can't drift.
+ *
+ * Matched case-insensitively. Kept deliberately tight (see the humanizer's "what
+ * NOT to flag"): isolated common words are fine; these target the formulas and
+ * clusters that read as machine-written. The dash pattern is here for the eval,
+ * which checks raw model output; at runtime the check runs on humanized text
+ * (dashes already stripped), so it never double-flags an auto-fixed dash.
+ */
+export const BANNED_PATTERNS: readonly { label: string; re: RegExp }[] = [
+  { label: "em/en/figure dash", re: /[‒–—―]/ },
+  { label: `"X isn't Y, it's Z"`, re: /\bisn'?t\b[^.?!\n]{0,40}\bit'?s\b/i },
+  // The same antithesis split across two sentences ("It does not make X feel
+  // less Y. It makes it feel more Z."), the exact tell that shipped in the
+  // flagged "single neurons" draft. Scoped to a re-asserting "It <verb>" so it
+  // does not catch ordinary negation ("This does not work. The team is on it.").
+  {
+    label: "antithesis reversal",
+    // Re-assertion verbs are limited to perception/transformation ("It makes /
+    // feels / looks ...") so the plain "It is ..." that follows ordinary
+    // negation ("The API is not ready. It is in beta.") is not flagged.
+    re: /\b(?:does|do|did|is|are|was|were|will)\s+not\b[^.?!\n]{0,80}[.?!]+\s+It\s+(?:makes?|feels?|looks?|seems?|becomes?|turns?|reads?|sounds?)\b/,
+  },
+  // Significance filler ("the part I cannot stop thinking about") that announces
+  // importance instead of showing it.
+  {
+    label: "significance filler",
+    re: /\bthe (?:part|thing|bit)(?: that)? (?:i|you|we)(?:'?ll)? (?:can'?t|cannot|couldn'?t) stop thinking about\b/i,
+  },
+  { label: `"the real question is"`, re: /the real question is/i },
+  { label: `"the quiet part out loud"`, re: /quiet part out loud/i },
+  { label: `"let that sink in"`, re: /let that sink in/i },
+  { label: `"make no mistake"`, re: /make no mistake/i },
+  { label: `"a line in the sand"`, re: /line in the sand/i },
+  { label: `"in a world where"`, re: /in a world where/i },
+  { label: `"here's why that matters"`, re: /here'?s why (?:that|this) matters/i },
+  { label: `"it's worth noting"`, re: /it'?s worth noting/i },
+  { label: `"in today's world"`, re: /in today'?s world/i },
+  { label: `"let's dive in"`, re: /let'?s dive in/i },
+  { label: `"here's what you need to know"`, re: /here'?s what you need to know/i },
+  { label: `"great question"`, re: /great question/i },
+  { label: `"you're absolutely right"`, re: /you'?re absolutely right/i },
+  // Scoped to the fake-profound noun forms the humanizer actually targets
+  // ("Symmetry is the language of trust"), not every "is the X of Y" phrase.
+  {
+    label: "aphorism formula (the X of)",
+    re: /\bis the (?:language|currency|architecture|art|science|mirror|enemy) of\b/i,
+  },
+  { label: "aphorism formula (not a X but a Y)", re: /\bis not a \w+,? but a \w+/i },
+  { label: "rule-of-three triplet", re: /\b\w+ing, \w+ing, and \w+ing\b/i },
+];
+
+/**
+ * AI tells (by label) found in a post body. Empty array means clean.
+ * compose_drafts surfaces any hits so the model rewrites, the same contract as
+ * findDateHits; the drafts eval asserts the same patterns against raw output.
+ */
+export function findBannedHits(text: string): string[] {
+  const hits: string[] = [];
+  for (const { label, re } of BANNED_PATTERNS) {
+    if (re.test(text)) hits.push(label);
+  }
+  return hits;
+}
+
 export const draftSchema = z.object({
   format: z.enum(FORMATS),
   signal: z.enum(SIGNALS),
@@ -154,6 +224,8 @@ export interface ValidatedUnit {
   readonly over: boolean;
   /** Calendar tokens found in this unit (years, months, quarters). Empty == clean. */
   readonly dateHits: readonly string[];
+  /** AI tells found in this unit (by label, see BANNED_PATTERNS). Empty == clean. */
+  readonly bannedHits: readonly string[];
 }
 export interface ValidatedDraft {
   readonly format: Format;
@@ -172,7 +244,15 @@ export function validateDrafts(drafts: readonly Draft[]): ValidatedDraft[] {
       units: unitsOf(draft).map((raw) => {
         const text = humanizeText(raw);
         const chars = countChars(text);
-        return { text, chars, over: chars > limit, dateHits: findDateHits(text) };
+        return {
+          text,
+          chars,
+          over: chars > limit,
+          dateHits: findDateHits(text),
+          // Run on the humanized text so an em dash (already converted to a
+          // comma) is never flagged here as a tell, only the formulas survive.
+          bannedHits: findBannedHits(text),
+        };
       }),
     };
   });

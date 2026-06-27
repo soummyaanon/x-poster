@@ -15,8 +15,10 @@ export default defineTool({
     "For each draft set `format`, `signal`, and an optional one-line `note`. `text`/`tweets` is " +
     "the post body only: no preamble, numbering, or surrounding quotes. Never use em dashes, and " +
     "never put a calendar date in the post (no year, month name, or quarter; name the actual " +
-    "thing, not the date). If this tool flags a draft as over the limit or dated, fix that draft " +
-    "and call it again. Calling this tool IS how the user sees the drafts; never also print them as text.",
+    "thing, not the date). The tool also flags AI tells (rule-of-three, antithesis reversals like " +
+    "\"it does not X, it Ys\", \"the real question is\", significance filler); if it flags a draft as " +
+    "over the limit, dated, or full of tells, rewrite that draft and call it again. Calling this " +
+    "tool IS how the user sees the drafts; never also print them as text.",
   inputSchema: composeDraftsInputSchema,
   execute({ drafts }) {
     return { drafts: validateDrafts(drafts) };
@@ -32,19 +34,28 @@ export default defineTool({
         if (dates.length > 0) {
           flags.push(`REMOVE the date (${dates.join(", ")}); name the thing, not the date`);
         }
+        const tells = [...new Set(draft.units.flatMap((u) => u.bannedHits))];
+        if (tells.length > 0) {
+          flags.push(`REWRITE to kill AI tells (${tells.join("; ")})`);
+        }
         return `#${index + 1} ${draft.format} [${draft.signal}] ${sizes}c${
           flags.length > 0 ? ` (${flags.join("; ")})` : ""
         }`;
       })
       .join("; ");
     const needsFix = output.drafts.some((d) =>
-      d.units.some((u) => u.over || u.dateHits.length > 0),
+      d.units.some((u) => u.over || u.dateHits.length > 0 || u.bannedHits.length > 0),
     );
+    const hasTells = output.drafts.some((d) => d.units.some((u) => u.bannedHits.length > 0));
     return {
       type: "text",
       value:
         `Presented ${output.drafts.length} drafts: ${summary}.` +
-        (needsFix ? " Fix the flagged drafts and call compose_drafts again." : ""),
+        (needsFix ? " Fix the flagged drafts and call compose_drafts again." : "") +
+        (hasTells
+          ? " The flagged drafts still read AI-generated; rewrite them in voice, and if they" +
+            " resist after a pass, load_skill(\"humanizer\") for a deep rewrite before recomposing."
+          : ""),
     };
   },
 });

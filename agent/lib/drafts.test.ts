@@ -3,6 +3,7 @@ import {
   MAX_TWEET_CHARS,
   composeDraftsInputSchema,
   countChars,
+  findBannedHits,
   findDateHits,
   humanizeText,
   validateDrafts,
@@ -81,7 +82,75 @@ describe("findDateHits", () => {
   });
 });
 
+describe("findBannedHits", () => {
+  it("catches a plain banned formula", () => {
+    expect(findBannedHits("ok but let that sink in for a second")).toContain(
+      '"let that sink in"',
+    );
+  });
+
+  it("catches the persuasive-authority opener", () => {
+    expect(findBannedHits("the real question is whether anyone ships it")).toContain(
+      '"the real question is"',
+    );
+  });
+
+  it("catches the antithesis reversal that shipped in production", () => {
+    // From the live "single neurons" draft the user flagged.
+    const hits = findBannedHits(
+      "It does not make the brain feel less mysterious. It makes it feel more engineered.",
+    );
+    expect(hits.length).toBeGreaterThan(0);
+  });
+
+  it("catches the 'does not look X. It looks Y' rhythm", () => {
+    const hits = findBannedHits(
+      "language does not look fuzzy at that scale. It looks organized.",
+    );
+    expect(hits.length).toBeGreaterThan(0);
+  });
+
+  it("catches significance filler", () => {
+    const hits = findBannedHits("That is the part I cannot stop thinking about.");
+    expect(hits.length).toBeGreaterThan(0);
+  });
+
+  it("returns nothing for a clean, specific line", () => {
+    expect(findBannedHits("the new model reviews its own diffs now")).toEqual([]);
+  });
+
+  it("does not flag ordinary negation that is not the reversal formula", () => {
+    expect(findBannedHits("This does not work yet. The team is on it.")).toEqual([]);
+  });
+
+  it("does not flag plain 'It is' re-assertion after negation", () => {
+    expect(findBannedHits("The API is not ready. It is in beta.")).toEqual([]);
+  });
+});
+
 describe("validateDrafts", () => {
+  it("surfaces banned AI tells per unit", () => {
+    const [result] = validateDrafts([
+      { format: "short", text: "the real question is whether it ships", signal: "reply" },
+    ]);
+    expect(result.units[0].bannedHits).toContain('"the real question is"');
+  });
+
+  it("leaves bannedHits empty for a clean post", () => {
+    const [result] = validateDrafts([
+      { format: "short", text: "the new model reviews its own diffs now", signal: "dwell" },
+    ]);
+    expect(result.units[0].bannedHits).toEqual([]);
+  });
+
+  it("does not double-flag an em dash as a banned tell (it is auto-stripped first)", () => {
+    const [result] = validateDrafts([
+      { format: "short", text: "live now — and fast", signal: "reply" },
+    ]);
+    expect(result.units[0].text).toBe("live now, and fast");
+    expect(result.units[0].bannedHits).toEqual([]);
+  });
+
   it("surfaces calendar dates per unit", () => {
     const [result] = validateDrafts([
       { format: "short", text: "huge news for June 2026", signal: "reply" },
