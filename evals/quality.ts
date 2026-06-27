@@ -31,6 +31,21 @@ export const BANNED_PATTERNS: readonly { label: string; re: RegExp }[] = [
   { label: `"here's why that matters"`, re: /here'?s why (that|this) matters/i },
   { label: `"it's worth noting"`, re: /it'?s worth noting/i },
   { label: `"in today's world"`, re: /in today'?s world/i },
+  // Condensed humanizer tells (agent/instructions/25-humanizer.md)
+  { label: `"the real question is"`, re: /the real question is/i },
+  { label: `"let's dive in"`, re: /let'?s dive in/i },
+  { label: `"here's what you need to know"`, re: /here'?s what you need to know/i },
+  { label: `"great question"`, re: /great question/i },
+  { label: `"you're absolutely right"`, re: /you'?re absolutely right/i },
+  // Scoped to the fake-profound noun forms the humanizer actually targets
+  // ("Symmetry is the language of trust"), not every "is the X of Y" phrase
+  // (which catches normal lines like "is the future of" or "is the head of").
+  { label: "aphorism formula (the X of)", re: /\bis the (?:language|currency|architecture|art|science|mirror|enemy) of\b/i },
+  { label: "aphorism formula (not a X but a Y)", re: /\bis not a \w+,? but a \w+/i },
+  {
+    label: "rule-of-three triplet",
+    re: /\b\w+ing, \w+ing, and \w+ing\b/i,
+  },
 ];
 
 /** Every post body in the set: one for short/single/long/quote, N for a thread. */

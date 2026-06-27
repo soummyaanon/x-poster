@@ -25,7 +25,21 @@ import {
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ChevronDownIcon } from "lucide-react";
 import { type Tier, TIERS, TIER_LABELS } from "@/agent/lib/drafts";
+import {
+  DEFAULT_VOICE_ID,
+  type VoiceId,
+  VOICE_PRESETS,
+  resolveVoiceContext,
+  voiceLabel,
+} from "@/agent/lib/voices";
 import { DEFAULT_MODEL_ID, MODEL_LABEL } from "@/agent/lib/models";
 import { deriveUsage } from "@/lib/usage";
 import { cn } from "@/lib/utils";
@@ -55,6 +69,9 @@ export function AgentChat() {
   // The user's account tier. Premium by default; rides along with every turn as
   // ephemeral client context so the agent drafts tier-appropriate formats.
   const [tier, setTier] = useState<Tier>("premium");
+  const [voiceId, setVoiceId] = useState<VoiceId>(DEFAULT_VOICE_ID);
+  const [customVoice, setCustomVoice] = useState("");
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const isBusy = agent.status === "submitted" || agent.status === "streaming";
   const isEmpty = agent.data.messages.length === 0;
   const derivedUsage = useMemo(() => deriveUsage(agent.events), [agent.events]);
@@ -66,7 +83,17 @@ export function AgentChat() {
       return;
     }
     setMobileOpen(false);
-    await agent.send({ message: trimmed, clientContext: { accountTier: tier } });
+    await agent.send({
+      message: trimmed,
+      clientContext: {
+        accountTier: tier,
+        voice: resolveVoiceContext(
+          voiceId === "custom"
+            ? { id: "custom", custom: customVoice.trim() || undefined }
+            : { id: voiceId },
+        ),
+      },
+    });
   };
 
   const handleSubmit = async (message: PromptInputMessage) => {
@@ -189,6 +216,15 @@ export function AgentChat() {
                   {MODEL_LABEL}
                 </span>
                 <TierToggle disabled={isBusy} onChange={setTier} tier={tier} />
+                <VoicePicker
+                  customVoice={customVoice}
+                  disabled={isBusy}
+                  onCustomVoiceChange={setCustomVoice}
+                  onOpenChange={setVoiceOpen}
+                  onVoiceChange={setVoiceId}
+                  open={voiceOpen}
+                  voiceId={voiceId}
+                />
                 <PromptInputActionMenu>
                   <PromptInputActionMenuTrigger />
                   <PromptInputActionMenuContent>
@@ -209,6 +245,92 @@ export function AgentChat() {
         </div>
       </main>
     </div>
+  );
+}
+
+function VoicePicker({
+  customVoice,
+  disabled,
+  onCustomVoiceChange,
+  onOpenChange,
+  onVoiceChange,
+  open,
+  voiceId,
+}: {
+  readonly customVoice: string;
+  readonly disabled: boolean;
+  readonly onCustomVoiceChange: (value: string) => void;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly onVoiceChange: (id: VoiceId) => void;
+  readonly open: boolean;
+  readonly voiceId: VoiceId;
+}) {
+  const displayLabel =
+    voiceId === "custom" && customVoice.trim()
+      ? customVoice.trim().startsWith("@")
+        ? customVoice.trim()
+        : "Custom"
+      : voiceLabel(voiceId);
+
+  return (
+    <Popover onOpenChange={onOpenChange} open={open}>
+      <PopoverTrigger asChild>
+        <button
+          className={cn(
+            "inline-flex max-w-[9rem] items-center gap-0.5 rounded-full border border-border px-2 py-0.5 font-medium text-[11px] transition-colors disabled:opacity-50",
+            voiceId !== DEFAULT_VOICE_ID
+              ? "bg-violet-500/10 text-violet-700 dark:text-violet-400"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+          disabled={disabled}
+          title="Writing voice: style layer on top of the humanizer base"
+          type="button"
+        >
+          <span className="truncate">{displayLabel}</span>
+          <ChevronDownIcon className="size-3 shrink-0 opacity-60" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64 p-1">
+        <div className="flex flex-col gap-0.5">
+          {VOICE_PRESETS.map((preset) => (
+            <button
+              className={cn(
+                "rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-accent",
+                voiceId === preset.id && "bg-accent font-medium",
+              )}
+              key={preset.id}
+              onClick={() => {
+                onVoiceChange(preset.id);
+                onOpenChange(false);
+              }}
+              type="button"
+            >
+              <span className="block font-medium">{preset.label}</span>
+              <span className="block text-[10px] text-muted-foreground">{preset.blurb}</span>
+            </button>
+          ))}
+          <button
+            className={cn(
+              "rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-accent",
+              voiceId === "custom" && "bg-accent font-medium",
+            )}
+            onClick={() => onVoiceChange("custom")}
+            type="button"
+          >
+            <span className="block font-medium">Custom…</span>
+            <span className="block text-[10px] text-muted-foreground">@handle or style</span>
+          </button>
+          {voiceId === "custom" ? (
+            <Input
+              className="mt-1 h-8 text-xs"
+              onChange={(e) => onCustomVoiceChange(e.target.value)}
+              placeholder="@handle or describe a style"
+              value={customVoice}
+            />
+          ) : null}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

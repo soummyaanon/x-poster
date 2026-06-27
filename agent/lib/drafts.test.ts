@@ -41,6 +41,11 @@ describe("humanizeText", () => {
     const out = humanizeText("a — b – c — 1–2");
     expect(out).not.toMatch(/[‒–—―]/);
   });
+
+  it("normalizes curly quotes to straight quotes", () => {
+    expect(humanizeText("He said \u201Chello\u201D")).toBe('He said "hello"');
+    expect(humanizeText("it\u2019s fine")).toBe("it's fine");
+  });
 });
 
 describe("findDateHits", () => {

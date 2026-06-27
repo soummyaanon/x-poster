@@ -8,11 +8,13 @@
 import { defineEval } from "eve/evals";
 import { equals } from "eve/evals/expect";
 import type { ComposeDraftsInput, Tier } from "#lib/drafts.ts";
+import { DEFAULT_VOICE_ID, type VoiceId, resolveVoiceContext } from "#lib/voices.ts";
 import { bodiesOf, findViolations } from "./quality.ts";
 
 interface DraftCase {
   readonly tier: Tier;
   readonly prompt: string;
+  readonly voiceId?: Exclude<VoiceId, "custom">;
 }
 
 // Concrete topics (not pasted posts/links) so the agent takes the normal
@@ -29,16 +31,24 @@ const CASES: readonly DraftCase[] = [
     prompt:
       "Topic: open-source software. Find one specific, recent, verifiable development and draft posts about it.",
   },
+  {
+    tier: "premium",
+    voiceId: "karpathy",
+    prompt:
+      "Topic: AI coding agents. Find one specific, recent, verifiable development and draft posts in a technical builder voice.",
+  },
 ];
 
 export default CASES.map((c) =>
   defineEval({
-    description: `Drafts for a ${c.tier} account: researches first, composes once, clears the quality bar.`,
-    tags: ["drafts", c.tier],
+    description: `Drafts for a ${c.tier} account${c.voiceId ? ` (${c.voiceId} voice)` : ""}: researches first, composes once, clears the quality bar.`,
+    tags: ["drafts", c.tier, ...(c.voiceId ? [c.voiceId] : [])],
     async test(t) {
-      // accountTier rides in clientContext exactly as the web UI sends it
-      // (app/_components/agent-chat.tsx).
-      await t.send({ message: c.prompt, clientContext: { accountTier: c.tier } });
+      const voice = resolveVoiceContext({ id: c.voiceId ?? DEFAULT_VOICE_ID });
+      await t.send({
+        message: c.prompt,
+        clientContext: { accountTier: c.tier, voice },
+      });
 
       // The turn finished without failing or parking on a question.
       t.completed();

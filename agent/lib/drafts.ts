@@ -56,6 +56,9 @@ export const TIER_FORMATS: Record<Tier, readonly Format[]> = {
 const NUMERIC_RANGE = /(\d)\s*[‒–—―]\s*(\d)/g;
 const CLAUSE_DASH = /\s*[‒–—―]\s*/g;
 const SPACED_DOUBLE_HYPHEN = / +-{2,} +/g;
+// Curly/smart quotes → straight (safe normalization backstop).
+const CURLY_DOUBLE_QUOTES = /[\u201C\u201D]/g;
+const CURLY_SINGLE_QUOTES = /[\u2018\u2019]/g;
 
 /**
  * Deterministic safety net so a draft never ships with an em dash, no matter
@@ -65,6 +68,8 @@ const SPACED_DOUBLE_HYPHEN = / +-{2,} +/g;
  */
 export function humanizeText(text: string): string {
   let out = text
+    .replace(CURLY_DOUBLE_QUOTES, '"')
+    .replace(CURLY_SINGLE_QUOTES, "'")
     .replace(NUMERIC_RANGE, "$1-$2")
     .replace(CLAUSE_DASH, ", ")
     .replace(SPACED_DOUBLE_HYPHEN, ", ");
