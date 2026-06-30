@@ -1,12 +1,12 @@
 ---
 name: voice
 description: |
-  Use when a draft needs deeper voice calibration than the always-on charter
-  gives: a non-house preset or custom voice is selected, a draft sounds like the
-  house blend wearing a name tag, or you want the house exemplars, per-format
-  voice guidance, and the mechanical-to-human rewrite moves. The universal
-  charter and the selected voice's profile are already in front of you every turn;
-  load this for the reference depth.
+  Load this on EVERY drafting or revising turn, as step 3 of the mandatory drafting
+  pipeline, before composing. It carries the house exemplars, per-format voice
+  guidance, and the mechanical-to-human rewrite moves that calibrate the selected
+  voice (house, a preset like Naval or Karpathy, or a custom @handle). Always load
+  it when you are about to draft or revise an X post; do not rely on the injected
+  profile alone.
 ---
 
 # Voice (house reference, per-format guidance, and rewrite moves)

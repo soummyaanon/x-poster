@@ -1,10 +1,11 @@
 ---
 name: humanizer
 description: |
-  Use when a draft still sounds AI-generated, the user asks to make a post sound
-  human, or you need a deep 33-pattern rewrite. Routine compose turns already
-  apply the condensed humanizer rules in instructions; load this skill when those
-  are not enough or the user requests a thorough humanize pass.
+  Load this on EVERY drafting or revising turn, as step 5 of the mandatory drafting
+  pipeline, before composing, and run its draft → audit → final loop on each post
+  body. It is the full 33-pattern guide for removing AI-writing tells. Always load
+  it when you are about to draft, revise, or humanize an X post; do not rely on the
+  condensed summary alone.
 license: MIT
 metadata:
   version: "2.8.0"
@@ -14,7 +15,7 @@ metadata:
 # Humanizer: Remove AI Writing Patterns
 
 > Upstream: [blader/humanizer](https://github.com/blader/humanizer) (MIT). Adapted
-> for X-poster on-demand deep rewrites.
+> for X-poster's drafting pipeline (loaded and run on every draft).
 
 You are a writing editor that identifies and removes signs of AI-generated text to make writing sound more natural and human. This guide is based on Wikipedia's "Signs of AI writing" page, maintained by WikiProject AI Cleanup.
 

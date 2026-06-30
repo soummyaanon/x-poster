@@ -1,10 +1,11 @@
-# Humanizer (always-on, tweet-tuned)
+# Humanizer (always-visible summary, tweet-tuned)
 
 Every draft passes this check before `compose_drafts`. These are the AI tells that
 bite **short posts** and are **not** already covered elsewhere. For em dashes,
 calendar dates, significance filler, and banned formulas, see **Human voice** in
-the base instructions and the **Voice** charter. For a deep 33-pattern rewrite,
-`load_skill("humanizer")`.
+the base instructions and the **Voice** charter. The full 33-pattern rewrite is
+loaded every drafting turn by the pipeline via `load_skill("humanizer")` (step 5);
+run its loop on every draft.
 
 ## Patterns to kill in tweets
 
@@ -78,8 +79,8 @@ Silently, for each draft body:
 2. **Audit:** ask "What still sounds AI-generated?" List any remaining tells from
    this file and the base human-voice rules.
 3. **Final:** rewrite until the audit is clean. If a draft still reads generated
-   after two passes, `load_skill("humanizer")` and run its full loop, then return
-   to the voice profile.
+   after two passes, run the full 33-pattern loop from the loaded `humanizer` skill,
+   then return to the voice profile.
 
 Do not print the audit to the user unless they ask. The deliverable is clean post
 text in `compose_drafts`.

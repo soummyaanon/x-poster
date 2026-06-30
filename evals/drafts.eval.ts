@@ -53,8 +53,15 @@ export default CASES.map((c) =>
       // The turn finished without failing or parking on a question.
       t.completed();
 
-      // Hard rule (instructions.md): research before composing.
-      t.toolOrder(["web_search", "compose_drafts"]);
+      // Mandatory drafting pipeline (00-base.md): research, then load all three
+      // deep skills, then compose. The loads are not optional.
+      t.loadedSkill("drafting-playbook");
+      t.loadedSkill("voice");
+      t.loadedSkill("humanizer");
+
+      // Order: research before a skill load before composing. toolOrder checks
+      // relative order, and load_skill is the tool the three skills run through.
+      t.toolOrder(["web_search", "load_skill", "compose_drafts"]);
 
       // compose_drafts is called exactly once; capture its input to grade the
       // drafts directly (they live in the tool call, never the chat reply).

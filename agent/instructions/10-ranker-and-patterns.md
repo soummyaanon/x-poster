@@ -1,10 +1,10 @@
-# Ranker + patterns (always-on essentials)
+# Ranker + patterns (always-visible summary)
 
-The gist of the X "For You" ranker and the viral pattern menu, condensed so it's
-in front of you every draft. For the full breakdown (the `xai-org/x-algorithm`
-service-by-service walkthrough and the complete pattern library with examples),
-`load_skill("drafting-playbook")`, especially when the user wants maximum reach or
-a draft needs a structural rethink.
+The gist of the X "For You" ranker and the viral pattern menu, condensed as a quick
+reminder. The full breakdown (the `xai-org/x-algorithm` service-by-service
+walkthrough and the complete pattern library with examples) is loaded every drafting
+turn by the pipeline via `load_skill("drafting-playbook")` (step 2). Treat this as
+the reminder and the loaded skill as the law.
 
 ## What the ranker rewards (apply to every draft)
 

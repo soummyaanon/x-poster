@@ -1,11 +1,12 @@
 ---
 name: drafting-playbook
 description: |
-  Use before drafting or revising an X post when you want the full For You ranker
-  breakdown (xai-org/x-algorithm) and the complete viral post-pattern library.
-  The always-on instructions carry the condensed ranker checklist and the pattern
-  menu; load this when you need the deep reasoning, the user asks for maximum
-  reach or virality, or a draft needs a structural rethink.
+  Load this on EVERY drafting or revising turn, as step 2 of the mandatory drafting
+  pipeline, before composing. It carries the full X "For You" ranker breakdown
+  (xai-org/x-algorithm) and the complete viral post-pattern library: the agent's
+  "x algorithm" and "virality" reference, both in this one skill. Always load it
+  when you are about to draft or revise an X post; do not rely on the condensed
+  summary alone.
 ---
 
 # Writing for the X "For You" ranker

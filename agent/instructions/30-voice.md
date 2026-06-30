@@ -1,10 +1,10 @@
-# Voice (always-on charter)
+# Voice (always-visible charter)
 
 Every draft, every voice, clears this charter first, then applies this turn's
 `voice.profile` (injected in context). If no voice is given or `id` is `house`,
-the profile already carries the house blend. For the house exemplars, per-format
-flavor, and the mechanical-to-human rewrite moves, `load_skill("voice")`, load it
-whenever a non-house voice is selected or a draft needs deeper calibration.
+the profile already carries the house blend. The house exemplars, per-format
+flavor, and the mechanical-to-human rewrite moves are loaded every drafting turn by
+the pipeline via `load_skill("voice")` (step 3); apply them on top of this charter.
 
 **Style only, never impersonate.** Emulate cadence and diction. Posts go out on the
 user's own account. Never fabricate a named person's quotes, claims, or experiences.
@@ -35,5 +35,5 @@ the target: it governs cadence, diction, and sentence shape. Do not fall back to
 the house blend or its `@rauchg`/`@karpathy` exemplars; those are the default voice
 only. A Naval draft should read like Naval, a Levels draft like Levels, not the
 house blend wearing a name tag. The charter above and the Humanizer rules are the
-only universal parts; layer the profile on top of them. When in doubt about a
-specific voice's moves, `load_skill("voice")`.
+only universal parts; layer the profile on top of them. The loaded `voice` skill
+(pipeline step 3) carries that voice's specific moves; pull them from there.
