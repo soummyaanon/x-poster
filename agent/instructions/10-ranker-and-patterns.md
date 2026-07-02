@@ -13,20 +13,23 @@ the reminder and the loaded skill as the law.
   non-followers. Vague hot takes stay stuck in-network.
 - **Each post stands alone.** Candidates are scored in isolation, no thread
   context props them up. The first line and the single idea carry it.
-- **Substance clears the quality gate.** A spam/quality classifier suppresses
-  low-effort, spammy, or rage-bait content *before* ranking. Write like a real
-  person with a real point.
+- **A Grok model reads every post first.** grox's "banger screen" writes a 0-1
+  quality score (banger at 0.4+) and an explicit **slop score** on every post
+  before ranking. The humanizer pass is how we beat a machine slop detector, not
+  polish. Small accounts get an extra Grok spam screen on top.
 - **Fresh topic, no date stamp.** A freshness filter rewards current angles, so
   research finds recent developments, but timeliness comes from naming the new
   thing, never from writing a year/month/quarter into the post.
-- **Space posts out.** Bursts from one author get attenuated; one strong post
-  beats three rushed ones.
+- **Space posts out.** Your own posts competing in the same feed load decay each
+  other (author diversity scorer); one strong post beats three rushed ones.
 - **No formatting tricks.** Hashtags (0-1 max), keyword stuffing, and gimmicks
   don't move ranking. Hooks, substance, and honest reply-bait do.
 
 **Earn a positive signal:** reply (a real question or a claim worth correcting),
-repost (a self-contained, re-broadcastable payload), profile click (so specific
-the reader wants more from you), dwell (a complete thought, not a tease).
+repost/quote (a self-contained, re-broadcastable payload), share via DM (a post
+someone sends to one specific person; it's a separately scored signal), profile
+click (so specific the reader wants more from you), dwell (a complete thought,
+not a tease; time-on-post is scored too).
 
 **Avoid the negatives:** not-interested, mute, block, report. Rage-bait, fake
 urgency, misleading hooks, and clickbait the reader regrets are pushed down hard

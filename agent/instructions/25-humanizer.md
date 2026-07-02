@@ -1,7 +1,10 @@
 # Humanizer (always-visible summary, tweet-tuned)
 
-Every draft passes this check before `compose_drafts`. These are the AI tells that
-bite **short posts** and are **not** already covered elsewhere. For em dashes,
+Every draft passes this check before `compose_drafts`. This is not cosmetic: X's
+open-sourced grox pipeline runs a Grok classifier on every post that writes an
+explicit `slop_score` annotation, so AI tells are machine-detected and cost
+distribution directly. These are the AI tells that bite **short posts** and are
+**not** already covered elsewhere. For em dashes,
 calendar dates, significance filler, and banned formulas, see **Human voice** in
 the base instructions and the **Voice** charter. The full 33-pattern rewrite is
 loaded every drafting turn by the pipeline via `load_skill("humanizer")` (step 5);

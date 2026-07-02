@@ -14,8 +14,11 @@ Distilled from X's open-sourced recommendation system, `xai-org/x-algorithm`
 - `phoenix`: ML retrieval and ranking. A two-tower retrieval model (user tower +
   candidate tower) plus a transformer ranker that predicts engagement
   probabilities.
-- `grox`: content understanding. Classifiers and embedders for spam detection,
-  post-category classification, and policy enforcement.
+- `grox`: content understanding. Grok-based LLM classifiers that read every
+  post: a "banger initial screen" quality-and-slop judge (0-1 quality score,
+  banger-positive at 0.4+, plus an explicit slop score), spam detection with an
+  extra screen for low-follower accounts, safety (PTOS) screening, reply ranking,
+  and the summarizers/embedders retrieval runs on.
 - `candidate-pipeline`: the shared framework. Defines the Source, Hydrator,
   Filter, Scorer, Selector, and SideEffect traits the rest is built from.
 
@@ -36,9 +39,12 @@ control from the text alone.
    duplicates, too old (an age/freshness filter), self-posts, from blocked authors,
    matching muted keywords, already seen or served, or ineligible subscription
    content. Fresh and clean survives.
-3. **Content understanding (`grox`).** Classifiers judge quality and spam/abuse.
-   Low-quality, spammy, or abusive content gets suppressed. Write like a real
-   person with a real point; avoid anything that reads as engagement-farming.
+3. **Content understanding (`grox`).** A Grok vision-language model reads every
+   post and writes a 0-1 quality score (banger-positive at 0.4+), an explicit
+   slop score, quality/spam/safety flags, and a description + tags of what the
+   post is about. The first reader of every post is an LLM tuned to spot slop;
+   AI-sounding or engagement-farming content is machine-detected before ranking.
+   Write like a real person with a real point.
 4. **Ranking (`phoenix`).** The transformer predicts probabilities for the
    engagement actions below, then a Weighted Scorer combines them:
    `Final Score = Σ (weight_i × P(action_i))`. Candidates are scored **in
@@ -70,8 +76,12 @@ control from the text alone.
 - **Profile click / Follow author**: make *this* point so specific and high-signal
   that the reader wants more from you.
 - **Dwell**: a complete thought beats a vague tease; make them stop and read, not bounce.
+- **Share via DM / share via copy-link**: scored separately from generic share.
+  A post someone sends to one specific person is its own predicted signal; useful,
+  save-worthy specifics beat broadcast-y hype here.
 - **Favorite / Click / Video view / Photo expand**: supporting signals; a clean hook
-  and a clear payoff lift all of them.
+  and a clear payoff lift all of them. The media signals only exist when there is
+  media, so a text post competes on the text signals alone.
 
 **Negative (one of these can sink the post and drag the account):**
 
@@ -87,8 +97,9 @@ control from the text alone.
   filtered before ranking. Substance is a prerequisite, not a bonus.
 - **Timeliness helps (age filter).** Fresh, current angles survive; this is why
   research looks for *recent* developments.
-- **Space posts out (Author Diversity Scorer).** Bursts from one author get
-  attenuated; one strong post beats three rushed ones.
+- **Space posts out (Author Diversity Scorer).** Your posts competing in the same
+  feed load decay each other (each later one is multiplied down); one strong post
+  beats three rushed ones.
 - **Each post stands alone (candidate isolation).** No thread context props it up;
   the first line and the single idea have to carry it.
 - **No hand-engineered features.** Hashtags, keyword stuffing, and formatting tricks

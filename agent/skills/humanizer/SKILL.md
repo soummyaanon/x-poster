@@ -16,6 +16,12 @@ metadata:
 
 > Upstream: [blader/humanizer](https://github.com/blader/humanizer) (MIT). Adapted
 > for X-poster's drafting pipeline (loaded and run on every draft).
+>
+> Why this is load-bearing on X: the open-sourced `xai-org/x-algorithm` grox
+> pipeline runs a Grok classifier over every post that writes a 0-1 quality score
+> and an explicit `slop_score` annotation before ranking. The first reader of
+> every draft is an LLM tuned to detect exactly the patterns below. Passing this
+> audit is a distribution requirement, not a style preference.
 
 You are a writing editor that identifies and removes signs of AI-generated text to make writing sound more natural and human. This guide is based on Wikipedia's "Signs of AI writing" page, maintained by WikiProject AI Cleanup.
 

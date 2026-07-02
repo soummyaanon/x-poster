@@ -15,7 +15,8 @@ description: |
 > voice serve.
 
 Distilled from X's open-sourced recommendation system, `xai-org/x-algorithm`
-(the live For You stack). The named services:
+(the live For You stack, verified against the actual code in the repo). The
+named services:
 
 - `home-mixer`: orchestration. Runs the feed as a pipeline: query hydration,
   candidate sourcing, hydration, filtering, scoring, selection, post-filtering.
@@ -24,8 +25,10 @@ Distilled from X's open-sourced recommendation system, `xai-org/x-algorithm`
 - `phoenix`: ML retrieval and ranking. A two-tower retrieval model (user tower +
   candidate tower) plus a transformer ranker that predicts engagement
   probabilities.
-- `grox`: content understanding. Classifiers and embedders for spam detection,
-  post-category classification, and policy enforcement.
+- `grox`: content understanding. Grok-based LLM classifiers that read every
+  post: a "banger initial screen" quality-and-slop judge, spam detection, safety
+  (PTOS) screening, reply ranking, plus the summarizers and multimodal embedders
+  that retrieval runs on.
 - `candidate-pipeline`: the shared framework. Defines the Source, Hydrator,
   Filter, Scorer, Selector, and SideEffect traits the rest is built from.
 
@@ -45,24 +48,49 @@ raw follower count, which we can't control from the text alone.
    duplicates, too old (an age/freshness filter), self-posts, from blocked authors,
    matching muted keywords, already seen or served, or ineligible subscription
    content. Fresh and clean survives.
-3. **Content understanding (`grox`).** Classifiers judge quality and spam/abuse.
-   Low-quality, spammy, or abusive content gets suppressed. Write like a real
-   person with a real point; avoid anything that reads as engagement-farming.
+3. **Content understanding (`grox`): a Grok model reads your post first.** The
+   "banger initial screen" classifier
+   (`grox/classifiers/content/banger_initial_screen.py`) feeds the post, its
+   media, and author context to a Grok vision-language model at near-zero
+   temperature. Per post it returns:
+   - a `quality_score` from 0 to 1; the code marks the post banger-positive at
+     **`score >= 0.4`**;
+   - an explicit **`slop_score`** (graded 1 to 3) that the pipeline counts and
+     stores as an annotation on the post;
+   - boolean flags (`isHighQuality`, `isSpam`, `isNsfw`, `isGore`, `isViolent`,
+     ...);
+   - a written `description`, `tags`, and taxonomy categories for what the post
+     is about.
+
+   Two consequences. First, **the first reader of every post is an LLM tuned to
+   spot slop.** AI-tell phrasing is not a taste problem; it is machine-detected
+   and stored on the post. The humanizer pass exists to beat exactly this
+   classifier. Second, the model has to be able to *describe and tag* the post;
+   grox also summarizes and embeds posts for retrieval, so if an LLM cannot say
+   what your post is about, it cannot be tagged well here or retrieved well
+   out-of-network. Also: low-follower accounts get a dedicated Grok spam screen
+   (`SpamEapiLowFollowerClassifier`), so a small account gets *extra* scrutiny on
+   anything that smells like engagement farming.
 4. **Ranking (`phoenix`).** The transformer predicts probabilities for the
    engagement actions below, then a Weighted Scorer combines them:
    `Final Score = Σ (weight_i × P(action_i))`. Candidates are scored **in
    isolation** (special attention masking means a candidate cannot attend to its
    neighbors), so each post must earn its score on its own.
-5. **More scorers.** On top of the Weighted Scorer: an **Author Diversity Scorer**
-   attenuates repeated posts from the same author, and an **OON Scorer** adjusts
-   out-of-network scores.
+5. **More scorers.** On top of the Weighted Scorer: an **Author Diversity
+   Scorer** re-sorts your posts within a single feed response and multiplies each
+   later one by a decayed factor (`(1 - floor) × decay^n + floor`), so your own
+   posts compete with and dilute each other when several are candidates at once.
+   An **OON Scorer** then multiplies out-of-network candidates by a weight factor
+   that prioritizes in-network content, so out-of-network reach must clear a
+   higher bar.
 6. **Post-selection filters.** Visibility filtering removes deleted/spam/violence/
    gore, and conversations are deduplicated.
 
-> The exact numeric weights are **not** published in the repo. Positive actions
-> carry positive weights, negative actions carry negative weights, but the values,
-> thresholds, and training details are withheld. Don't invent numbers. Optimize for
-> the *portfolio* of positive actions while avoiding the negatives.
+> The exact numeric weights are **not** published: the `params.rs` module the
+> scorers import is withheld from the repo. Positive actions carry positive
+> weights, negative actions carry negative weights, but the values, thresholds,
+> and training details are not public. Don't invent numbers. Optimize for the
+> *portfolio* of positive actions while avoiding the negatives.
 
 > Key design fact from the repo: X "eliminated every single hand-engineered feature
 > and most heuristics", the Grok-based transformer does the heavy lifting. So
@@ -70,36 +98,59 @@ raw follower count, which we can't control from the text alone.
 
 ## The engagement actions, and how to earn each
 
+These are the exact signals summed in `home-mixer/scorers/weighted_scorer.rs`.
+
 **Positive (write to cause these):**
 
 - **Reply**: ask a real question, make a claim worth correcting, leave a
-  deliberate gap ("the one thing nobody mentions is ___").
-- **Repost / Quote / Share**: give a self-contained, re-broadcastable payload: a
-  crisp insight, a tight list, a surprising-but-true fact someone looks smart sharing.
+  deliberate gap ("the one thing nobody mentions is ___"). Replies under your
+  post are themselves Grok-ranked 0 to 3, so a post that draws *substantive*
+  replies builds a better conversation surface than one that draws one-word noise.
+- **Retweet / Quote / quoted-click**: give a self-contained, re-broadcastable
+  payload: a crisp insight, a tight list, a surprising-but-true fact someone looks
+  smart sharing. A defensible take people want to argue with or add to earns the
+  quote *and* the click back into the quoted post; both are scored.
+- **Share, share-via-DM, share-via-copy-link**: three *separate* predicted
+  signals. The underused lever is DM-worthiness: write posts someone would send to
+  one specific friend or coworker ("you need to see this"). Useful, save-worthy
+  specifics beat broadcast-y hype here.
 - **Profile click / Follow author**: make *this* point so specific and high-signal
   that the reader wants more from you.
-- **Dwell**: a complete thought beats a vague tease; make them stop and read, not bounce.
-- **Favorite / Click / Video view / Photo expand**: supporting signals; a clean hook
-  and a clear payoff lift all of them.
+- **Dwell (plus a continuous dwell-time signal)**: both "did they stop" and "how
+  long they stayed" are scored. A complete thought beats a vague tease, and a
+  longer post has to hold attention all the way down, not front-load and trail off.
+- **Favorite / Click / Photo expand / Video quality view**: supporting signals; a
+  clean hook and a clear payoff lift all of them. Photo-expand and video view only
+  exist when there is media (the video signal only counts past a minimum
+  duration), so a text-only post is simply not competing for those; make the text
+  signals count.
 
 **Negative (one of these can sink the post and drag the account):**
 
-- **Not interested / Mute author / Block author / Report**: triggered by rage-bait,
-  fake urgency, misleading hooks, spam, and clickbait the reader regrets. The model
-  is explicitly built to push these down.
+- **Not interested / Mute author / Block author / Report**: these carry negative
+  weights in the same weighted sum. Triggered by rage-bait, fake urgency,
+  misleading hooks, spam, and clickbait the reader regrets. The model is
+  explicitly built to push these down.
 
 ## Structural facts that shape the draft
 
 - **Out-of-network reach is earned by being *about* something.** Concrete topic plus
   a specific claim is embeddable, which reaches non-followers (Phoenix retrieval).
-- **Quality gate is real (`grox`).** Spammy, low-effort, or abusive patterns get
-  filtered before ranking. Substance is a prerequisite, not a bonus.
+  And the OON Scorer multiplies out-of-network scores down relative to in-network,
+  so an OON post needs both embeddability *and* strong predicted engagement to
+  break through.
+- **Quality gate is real, and it is an LLM (`grox`).** A Grok classifier writes a
+  0-to-1 quality score (banger at 0.4+), an explicit slop score, and quality/spam
+  flags on every post before anything ranks. Substance is a prerequisite, not a
+  bonus, and AI-sounding slop is detected by a machine, not just noticed by
+  readers.
 - **Timeliness helps (age filter).** Fresh, current angles survive; this is why
   research looks for *recent* developments. Note: this is about picking a *fresh
   topic*, not about writing a date into the post. Name the new thing, don't stamp
   the calendar.
-- **Space posts out (Author Diversity Scorer).** Bursts from one author get
-  attenuated; one strong post beats three rushed ones.
+- **Space posts out (Author Diversity Scorer).** Your posts competing in the same
+  feed load decay each other: the second-best gets multiplied down, the third more
+  so. A burst of takes cannibalizes itself; one strong post beats three rushed ones.
 - **Each post stands alone (candidate isolation).** No thread context props it up;
   the first line and the single idea have to carry it.
 - **No hand-engineered features.** Hashtags, keyword stuffing, and formatting tricks
@@ -108,11 +159,15 @@ raw follower count, which we can't control from the text alone.
 ## Checklist before finalizing a post
 
 1. Does the first line hook in under a second?
-2. Is it *about* a specific topic/claim (so it can reach out-of-network)?
-3. Is there a clear reason to reply, repost, or click the profile?
+2. Is it *about* a specific topic/claim? Could an LLM write a one-line description
+   and tags for it? (That is literally what grox does, and what retrieval embeds.)
+3. Is there a clear reason to reply, repost, or click the profile? Would anyone
+   DM this to a specific person?
 4. Is every fact real and current (so it clears the age filter and grox)?
-5. Would `grox` read this as genuine, not spam/rage-bait? Could it provoke a
-   mute / block / report? If so, soften or cut.
+5. Read it as the Grok slop grader will: any AI tells left, any engagement-bait
+   smell? A small account gets extra spam scrutiny, so anything formulaic costs
+   more than it earns. Could it provoke a mute / block / report? Fix before
+   shipping.
 6. One idea, 0-1 hashtags. Within the limit for the format.
 
 # Viral post patterns (use as starting shapes, not fill-in-the-blank scripts)
