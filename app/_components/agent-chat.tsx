@@ -34,6 +34,13 @@ import {
 import { ChevronDownIcon } from "lucide-react";
 import { type Tier, TIERS, TIER_LABELS } from "@/agent/lib/drafts";
 import {
+  DEFAULT_REGISTER,
+  type Register,
+  REGISTERS,
+  REGISTER_LABELS,
+  resolveRegisterContext,
+} from "@/agent/lib/registers";
+import {
   DEFAULT_VOICE_ID,
   type VoiceId,
   VOICE_PRESETS,
@@ -69,6 +76,9 @@ export function AgentChat() {
   // The user's account tier. Premium by default; rides along with every turn as
   // ephemeral client context so the agent drafts tier-appropriate formats.
   const [tier, setTier] = useState<Tier>("premium");
+  // How serious the post is. Sensible by default, so nothing changes until the
+  // user flips the pill. Rides along in clientContext like tier and voice.
+  const [register, setRegister] = useState<Register>(DEFAULT_REGISTER);
   const [voiceId, setVoiceId] = useState<VoiceId>(DEFAULT_VOICE_ID);
   const [customVoice, setCustomVoice] = useState("");
   const [voiceOpen, setVoiceOpen] = useState(false);
@@ -87,6 +97,7 @@ export function AgentChat() {
       message: trimmed,
       clientContext: {
         accountTier: tier,
+        register: resolveRegisterContext(register),
         voice: resolveVoiceContext(
           voiceId === "custom"
             ? { id: "custom", custom: customVoice.trim() || undefined }
@@ -172,7 +183,7 @@ export function AgentChat() {
                     Pick a category or type a topic and I&apos;ll research a timely angle, then
                     hand back copy-paste-ready posts tuned for X&apos;s For You ranking. Paste a
                     post or link to get quote-post takes. Toggle Premium or Free below for the
-                    right format.
+                    right format, and 💡 sensible or 🔥 shitpost for how serious it lands.
                   </p>
                 </div>
               </ConversationEmptyState>
@@ -215,6 +226,11 @@ export function AgentChat() {
                 <span className="rounded-md px-1.5 py-1 font-medium text-muted-foreground text-xs">
                   {MODEL_LABEL}
                 </span>
+                <RegisterToggle
+                  disabled={isBusy}
+                  onChange={setRegister}
+                  register={register}
+                />
                 <TierToggle disabled={isBusy} onChange={setTier} tier={tier} />
                 <VoicePicker
                   customVoice={customVoice}
@@ -331,6 +347,44 @@ function VoicePicker({
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function RegisterToggle({
+  disabled,
+  onChange,
+  register,
+}: {
+  readonly disabled: boolean;
+  readonly onChange: (register: Register) => void;
+  readonly register: Register;
+}) {
+  return (
+    <span
+      className="inline-flex items-center rounded-full border border-border p-0.5"
+      role="group"
+      title="Register: Sensible is an earnest researched take, Shitpost is a joke built on a real premise."
+    >
+      {REGISTERS.map((value) => (
+        <button
+          aria-pressed={register === value}
+          className={cn(
+            "rounded-full px-2 py-0.5 font-medium text-[11px] transition-colors disabled:opacity-50",
+            register === value
+              ? value === "shitpost"
+                ? "bg-orange-500/15 text-orange-700 dark:text-orange-400"
+                : "bg-muted text-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+          disabled={disabled}
+          key={value}
+          onClick={() => onChange(value)}
+          type="button"
+        >
+          {REGISTER_LABELS[value]}
+        </button>
+      ))}
+    </span>
   );
 }
 
