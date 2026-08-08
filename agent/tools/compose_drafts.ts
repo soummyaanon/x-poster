@@ -12,16 +12,23 @@ export default defineTool({
     "QUOTE mode (the user gave a post or link to react to): produce 2-3 format \"quote\" drafts, " +
     "each a take to post above the quoted post (max 280 chars, in `text`), and set top-level " +
     "`quoting` to the source URL or a short label.\n" +
+    "REGISTER: set top-level `register` to this turn's `register.id` from context (\"sensible\" or " +
+    "\"shitpost\"). It selects which guards run, so report it honestly; never send \"shitpost\" " +
+    "when the user has sensible selected. Under \"sensible\" (the default) calendar dates and " +
+    "formula shapes are rejected. Under \"shitpost\" a calendar date and an ironic formula are " +
+    "allowed, and lowercase is expected.\n" +
     "For each draft set `format`, `signal`, and an optional one-line `note`. `text`/`tweets` is " +
-    "the post body only: no preamble, numbering, or surrounding quotes. Never use em dashes, and " +
-    "never put a calendar date in the post (no year, month name, or quarter; name the actual " +
-    "thing, not the date). The tool also flags AI tells (rule-of-three, antithesis reversals like " +
-    "\"it does not X, it Ys\", \"the real question is\", significance filler); if it flags a draft as " +
-    "over the limit, dated, or full of tells, rewrite that draft and call it again. Calling this " +
-    "tool IS how the user sees the drafts; never also print them as text.",
+    "the post body only: no preamble, numbering, or surrounding quotes. Never use em dashes. The " +
+    "tool also flags AI tells (antithesis reversals like \"it does not X, it Ys\", \"the real " +
+    "question is\", significance filler) in BOTH registers; if it flags a draft as over the " +
+    "limit, dated, or full of tells, rewrite that draft and call it again. Calling this tool IS " +
+    "how the user sees the drafts; never also print them as text.",
   inputSchema: composeDraftsInputSchema,
-  execute({ drafts }) {
-    return { drafts: validateDrafts(drafts) };
+  execute({ drafts, register }) {
+    // The register comes from the model (clientContext is not readable here), so
+    // it is returned alongside the drafts: toModelOutput then reports flags under
+    // exactly the policy that was applied.
+    return { drafts: validateDrafts(drafts, register), register };
   },
   toModelOutput(output) {
     const summary = output.drafts
@@ -48,9 +55,9 @@ export default defineTool({
     );
     const hasTells = output.drafts.some((d) => d.units.some((u) => u.bannedHits.length > 0));
     return {
-      type: "text",
+      type: "text" as const,
       value:
-        `Presented ${output.drafts.length} drafts: ${summary}.` +
+        `Presented ${output.drafts.length} drafts in ${output.register} register: ${summary}.` +
         (needsFix ? " Fix the flagged drafts and call compose_drafts again." : "") +
         (hasTells
           ? " The flagged drafts still read AI-generated; rewrite them in voice, and if they" +
