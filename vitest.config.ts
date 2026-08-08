@@ -5,7 +5,15 @@ export default defineConfig({
     // Only this project's own unit tests. The vendored skill under
     // agent/skills/eve ships the entire eve monorepo (thousands of tests
     // that cannot run here), so it must be excluded.
-    include: ["lib/**/*.test.ts", "app/**/*.test.ts", "agent/lib/**/*.test.ts"],
+    // `evals/**/*.test.ts` covers the unit tests for eval helpers like
+    // quality.ts. The `.eval.ts` suffix the eve runner looks for never matches
+    // `*.test.ts`, so these stay plain vitest units.
+    include: [
+      "lib/**/*.test.ts",
+      "app/**/*.test.ts",
+      "agent/lib/**/*.test.ts",
+      "evals/**/*.test.ts",
+    ],
     exclude: [
       "node_modules/**",
       "agent/skills/**",
