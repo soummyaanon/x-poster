@@ -78,7 +78,7 @@ export default CASES.map((c) =>
       // the relaxed guards.
       const register = c.register ?? DEFAULT_REGISTER;
       const voice = resolveVoiceContext({ id: c.voiceId ?? DEFAULT_VOICE_ID });
-      await t.send({
+      const turn = await t.send({
         message: c.prompt,
         clientContext: {
           accountTier: c.tier,
@@ -104,16 +104,17 @@ export default CASES.map((c) =>
       // relative order, and load_skill is the tool the three skills run through.
       t.toolOrder(["web_search", "load_skill", "compose_drafts"]);
 
-      // compose_drafts is called exactly once; capture its input to grade the
-      // drafts directly (they live in the tool call, never the chat reply).
-      let composed: ComposeDraftsInput | undefined;
-      t.calledTool("compose_drafts", {
-        times: 1,
-        input: (value: unknown) => {
-          composed = value as ComposeDraftsInput;
-          return true;
-        },
-      });
+      // compose_drafts is called exactly once.
+      t.calledTool("compose_drafts", { times: 1 });
+
+      // Grade the drafts directly: they live in the tool call, never the chat
+      // reply. Read them off the turn's derived toolCalls rather than a
+      // t.calledTool `input` callback, which is evaluated when assertions
+      // finalize (after this function body) and so is always too late to
+      // capture into a local.
+      const composed = turn.toolCalls.find((call) => call.name === "compose_drafts")?.input as
+        | ComposeDraftsInput
+        | undefined;
 
       if (!composed) {
         throw new Error("compose_drafts was never called; nothing to grade.");
