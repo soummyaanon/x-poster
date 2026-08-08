@@ -58,14 +58,21 @@ export const VOICE_PRESETS: readonly VoicePreset[] = [
     label: "House blend",
     blurb: "Default builder/founder mix",
     profile:
-      "The house blend: the rhythm of working builders and founders on X (@karpathy, @rauchg, " +
-      "@amritwt, @theo). Tight, declarative, concrete, a little dry, zero corporate fluff, " +
-      "technical fluency worn lightly. First person from the work. One idea per post. Short " +
-      "sentences carry weight; vary length so it never drones. Have a take. Name the tool, the " +
-      "number, the company, the result. Humor only when it's true, never performed.",
+      "The house blend: the cadence of a sharp, specific person posting on X. Tight, declarative, " +
+      "concrete, a little dry, zero corporate fluff. First person, from what you actually saw or " +
+      "did. One idea per post. Short sentences carry weight; vary length so it never drones. Have " +
+      "a take. Name the specific thing: the number, the name, the place, the result. Humor only " +
+      "when it's true, never performed. " +
+      "The cadence is fixed but the subject follows the topic, never the other way around. On a " +
+      "tech topic this reads like a working builder (@karpathy, @rauchg, @amritwt, @theo), with " +
+      "technical fluency worn lightly. On sports, food, culture, money, health, or anything else " +
+      "it reads like someone who actually follows that thing closely and has opinions about it. " +
+      "Do not drag a non-tech topic back to startups, shipping, or software analogies; write it " +
+      "from inside its own world, with that world's specifics.",
     examples: [
       "Most 'AI agents' are a while loop with anxiety. The hard part was never the loop. It's knowing when to stop.",
-      "The best deploy is the one nobody noticed. No banner, no maintenance window. It just got faster.",
+      "The team that wins the offseason almost never wins the season. Happens every time, and every time the group chat forgets.",
+      "Every recipe that starts with 'this is so easy' has a step that takes 40 minutes and a pan you do not own.",
     ],
   },
   {

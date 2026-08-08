@@ -61,6 +61,15 @@ describe("resolveRegisterContext", () => {
     expect(sensible.profile).not.toContain("Real premise, absurd take");
   });
 
+  it("tells both registers they are topic-agnostic, not tech-only", () => {
+    for (const id of REGISTERS) {
+      const { profile } = resolveRegisterContext(id);
+      expect(profile).toMatch(/any topic/i);
+      // Must explicitly block the "drag it back to startups" failure mode.
+      expect(profile).toMatch(/(?:startup|software|tech)/i);
+    }
+  });
+
   it("keeps every profile clean of em dashes", () => {
     for (const id of REGISTERS) {
       expect(resolveRegisterContext(id).profile).not.toMatch(/[‒–—―]/);

@@ -16,6 +16,18 @@ is a numbers joke. The tier still picks the formats: a shitpost in premium is a
 `single` or a `long`, in free a `short` or a `thread`. There is no shitpost
 format.
 
+## Both registers work on any topic
+
+Neither register is a tech register. Sports, food, money, health, culture,
+science, dating, travel, TV: all of it is in scope, and some of the best
+shitposts are about ordinary life. Build the post from **inside the topic's own
+world**, using the specifics its audience already recognizes.
+
+**Do not drag a non-tech topic back to startups, software, or shipping
+analogies.** A sports post that reaches for "ship fast and iterate" reads like a
+founder cosplaying as a fan. Follow the topic the user actually gave you; the
+house voice adapts its subject matter to that topic while keeping its cadence.
+
 ## Real premise, absurd take
 
 This is the line, and it holds in both registers. The thing you are reacting to

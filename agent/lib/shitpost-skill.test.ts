@@ -22,11 +22,28 @@ describe("shitpost skill", () => {
     for (const heading of [
       "## The shape",
       "## The 80/20 split",
+      "## Works on any topic",
       "## What relaxes, and what never does",
       "## Antipatterns",
     ]) {
       expect(SKILL).toContain(heading);
     }
+  });
+
+  it("works outside tech: names non-tech domains explicitly", () => {
+    // The craft is universal; the skill must not read as a tech-only guide.
+    for (const domain of ["sports", "food", "money", "health"]) {
+      expect(SKILL.toLowerCase()).toContain(domain);
+    }
+  });
+
+  it("bans dragging a non-tech topic back to startups or software", () => {
+    expect(SKILL).toMatch(/do not (?:drag|pull)[\s\S]{0,120}(?:startup|software|tech)/i);
+  });
+
+  it("ships worked examples from more than one domain", () => {
+    const examples = SKILL.match(/^> /gm) ?? [];
+    expect(examples.length).toBeGreaterThanOrEqual(3);
   });
 
   it("states the fabrication line verbatim", () => {

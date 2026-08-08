@@ -71,6 +71,14 @@ describe("resolveVoiceContext", () => {
     expect(ctx.profile).toContain("house blend");
   });
 
+  it("lets the house blend follow the topic instead of forcing a builder frame", () => {
+    const { profile } = resolveVoiceContext({ id: "house" });
+    expect(profile).toMatch(/follows the topic|subject follows/i);
+    // The cadence stays; the subject matter must not be pinned to tech.
+    expect(profile).toMatch(/sports|food|culture/i);
+    expect(profile).toMatch(/do not drag[\s\S]{0,120}(?:startup|software)/i);
+  });
+
   it("resolves a preset by id", () => {
     const ctx = resolveVoiceContext({ id: "karpathy" });
     expect(ctx.id).toBe("karpathy");

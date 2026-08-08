@@ -49,14 +49,51 @@ not sloppiness. Do not sprinkle typos everywhere; one is texture, five is noise.
 
 Roughly 80% real observation, 20% cringe or self-deprecation.
 
-- The 80 is the part anyone in the audience recognizes: the actual product, the
-  actual number, the thing that actually happened, the shared annoyance.
+- The 80 is the part anyone in that audience recognizes: the actual thing that
+  happened, the actual number, the shared annoyance. On tech that might be a
+  product or a funding round; on sports it is the score, the transfer, the
+  substitution; on food it is the price, the wait, the portion.
 - The 20 is where you look worse than the target: your own bad decision, your own
-  refresh habit, your own tab count. Punching down at a person or group is not the
-  20 and never is.
+  refresh habit, your own third trip back to the same place. Punching down at a
+  person or group is not the 20 and never is.
 
 If the post is 100% joke it reads as random. If it is 100% observation it is just
 a sensible post in lowercase.
+
+## Works on any topic
+
+This register is not a tech register. The shape above is universal, and some of
+the best shitposts are about ordinary life: sports, food, money, health, dating,
+commuting, travel, celebrity, TV, parenting, weather. Whatever topic the user
+gave you, the joke gets built from **inside that topic's own world**, using the
+details its audience already recognizes.
+
+**Do not drag a non-tech topic back to startups, software, or shipping
+analogies.** A sports shitpost that reaches for "ship fast and iterate" is a
+founder cosplaying as a fan, and it reads that way. If the topic is a transfer
+window, the specifics are the fee, the medical, the announcement graphic. If it
+is a restaurant, the specifics are the wait, the small plates, the check.
+
+The 80 (the real observation) is always domain-native. Ask what everyone in that
+audience already grumbles about, then hang the absurd turn on it.
+
+Worked examples, one per domain, for cadence only. Never copy these:
+
+> the transfer fee is 90 million and the announcement video has a drone shot of
+> him arriving at an airport he has flown into 40 times. we are not okay
+
+> every restaurant with 12 small plates on the menu expects you to order 11 of
+> them and leave hungry and broke. i have done this three times this month
+
+> gym in january is 40 minutes of waiting for a bench and 20 minutes of lifting.
+> gym in march is empty and i have stopped going too. we did this together
+
+> the airline moved my seat, charged me to move it back, and then emailed me a
+> survey about my experience. genuinely one of the great business models
+
+Notice what none of them do: no product, no metric dashboard, no software
+metaphor. Each is specific to its own world, and the self-deprecating 20 lands on
+the poster, never on a group.
 
 ## What relaxes, and what never does
 

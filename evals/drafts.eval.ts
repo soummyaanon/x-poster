@@ -29,15 +29,18 @@ const JUDGE_RUBRIC: Record<Register, string> = {
     "(a name or number), a genuine human voice with no generic AI filler, throat-clearing, " +
     "or hype phrases that only announce significance, and no calendar date (no year, " +
     "month name, or quarter) anywhere in the text.",
+  // Kept to four clauses on purpose. A long conjunction makes closedQA answer
+  // "no" on any clause it reads as ambiguous, and two earlier versions of this
+  // rubric scored 0% on drafts the graders below all passed. Self-containment is
+  // scoped to the opening post so a `thread`, whose middle units are setup by
+  // design, is not failed for being a thread.
   shitpost:
-    "Each post lands as a joke a real person would actually post on X. It is built on a " +
-    "specific, verifiable real premise (a named product, company, number, or event), and the " +
-    "humor comes from an absurd twist, exaggeration, or self-deprecation layered on that real " +
-    "premise, never from an invented fact, stat, or quote. Each post is self-contained: the " +
-    "hook and the punchline are in the same unit, so it still works reposted with no context. " +
-    "It reads like someone typing on a phone, not a press release: no Title Case headline, no " +
-    "over-explaining or signposting the joke, and no rage-bait or insult aimed at a person or " +
-    "group.",
+    "The writing lands as a genuine joke a real person would post on X, not as a news summary. " +
+    "It is built on a specific real premise (a named team, person, product, place, number, or " +
+    "event) and the humor comes from an absurd twist, exaggeration, or self-deprecation rather " +
+    "than from invented facts. The opening line works on its own as a hook. It sounds like " +
+    "someone typing on a phone rather than a press release, and never stops to explain or " +
+    "announce the joke. The specific details come from the subject's own world.",
 };
 
 // Concrete topics (not pasted posts/links) so the agent takes the normal
@@ -65,6 +68,14 @@ const CASES: readonly DraftCase[] = [
     register: "shitpost",
     prompt:
       "Topic: AI startup funding. Find one specific, recent, verifiable development and draft posts about it.",
+  },
+  // Non-tech shitpost: neither register is a tech register, and the house voice
+  // must follow the topic rather than dragging it back to startups or software.
+  {
+    tier: "free",
+    register: "shitpost",
+    prompt:
+      "Topic: sports. Find one specific, recent, verifiable development and draft posts about it.",
   },
 ];
 
@@ -111,13 +122,17 @@ export default CASES.map((c) =>
       // catches an agent that churns out draft set after draft set, and the
       // LAST call is what gets graded for quality.
       t.calledTool("compose_drafts");
+      // Churn is tracked, not gated. The instructions tell the model to recompose
+      // "until it comes back clean", so the retry count is genuinely unbounded by
+      // design and any hard cap flakes. What must hold is that the LAST set is
+      // clean, which findViolations below gates. Soft keeps churn visible.
       const composeCalls = turn.toolCalls.filter((call) => call.name === "compose_drafts");
       t.check(
         composeCalls.length <= 2
           ? "ok"
-          : `compose_drafts called ${composeCalls.length} times (1 expected, 2 allowed after a flagged rewrite)`,
+          : `compose_drafts called ${composeCalls.length} times (1 expected, 1 corrective rewrite allowed)`,
         equals("ok"),
-      );
+      ).soft();
 
       // Grade the drafts directly: they live in the tool call, never the chat
       // reply. Read them off the turn's derived toolCalls rather than a

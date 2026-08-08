@@ -49,6 +49,12 @@ describe("20-register.md", () => {
   it("uses no em dashes of its own", () => {
     expect(md).not.toMatch(/[‒–—―]/);
   });
+
+  it("states that both registers work on any topic, not just tech", () => {
+    expect(md).toMatch(/any topic/i);
+    expect(md).toMatch(/sports|food|culture|health/i);
+    expect(md).toMatch(/do not drag[\s\S]{0,140}(?:startup|software|tech)/i);
+  });
 });
 
 describe("00-base.md", () => {

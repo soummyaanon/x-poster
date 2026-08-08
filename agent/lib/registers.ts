@@ -31,7 +31,10 @@ const REGISTER_PROFILES: Record<Register, string> = {
     "you verified, deliver one insight, and let the specificity do the work. Standard sentence " +
     "case, clean prose, no calendar dates, no formula shapes, no joke bolted on the end. This is " +
     "the register the existing quality bar was written for; every rule in the base instructions " +
-    "applies as written.",
+    "applies as written. " +
+    "Works on any topic, not just tech: sports, food, money, health, culture, science, whatever " +
+    "the user asked for. Do not drag a non-tech topic back to startups, software, or shipping " +
+    "analogies; the specific detail comes from inside that topic's own world.",
   shitpost:
     "Shitpost register. The post is a joke first and it has to actually land. Setup, bait, then a " +
     "sudden absurd twist or non-sequitur. Roughly 80% real observation, 20% cringe or " +
@@ -43,7 +46,11 @@ const REGISTER_PROFILES: Record<Register, string> = {
     "joke layered on top can be hyperbole, an absurd analogy, or obviously non-literal. Still zero " +
     "invented stats, fabricated quotes, or made-up events presented as real. Never rage-bait and " +
     "never punch at a person or group; it earns blocks and reports, not reach. Never explain the " +
-    "joke and never argue with someone who missed it.",
+    "joke and never argue with someone who missed it. " +
+    "Works on any topic, not just tech: sports, food, money, health, culture, dating, commuting, " +
+    "whatever the user asked for. Some of the best shitposts are about ordinary life. Do not drag " +
+    "a non-tech topic back to startups, software, or shipping analogies; the joke has to come " +
+    "from inside that topic's own world, using the details its audience already recognizes.",
 };
 
 export function isRegister(value: string): value is Register {
