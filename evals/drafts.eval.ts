@@ -89,8 +89,7 @@ export default CASES.map((c) =>
       // the relaxed guards.
       const register = c.register ?? DEFAULT_REGISTER;
       const voice = resolveVoiceContext({ id: c.voiceId ?? DEFAULT_VOICE_ID });
-      const turn = await t.send({
-        message: c.prompt,
+      const turn = await t.send(c.prompt, {
         clientContext: {
           accountTier: c.tier,
           register: resolveRegisterContext(register),
@@ -99,7 +98,7 @@ export default CASES.map((c) =>
       });
 
       // The turn finished without failing or parking on a question.
-      t.completed();
+      t.succeeded();
 
       // Mandatory drafting pipeline (00-base.md): research, then load all three
       // deep skills, then compose. The loads are not optional.

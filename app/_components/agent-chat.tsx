@@ -93,8 +93,7 @@ export function AgentChat() {
       return;
     }
     setMobileOpen(false);
-    await agent.send({
-      message: trimmed,
+    await agent.send(trimmed, {
       clientContext: {
         accountTier: tier,
         register: resolveRegisterContext(register),
@@ -197,7 +196,7 @@ export function AgentChat() {
                     }
                     key={message.id}
                     message={message}
-                    onInputResponses={(inputResponses) => agent.send({ inputResponses })}
+                    onInputResponses={(inputResponses) => agent.respond(inputResponses)}
                   />
                 ))}
                 {activity ? <Shimmer className="px-1 text-sm">{activity}</Shimmer> : null}

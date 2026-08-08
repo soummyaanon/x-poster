@@ -27,7 +27,7 @@ export default defineTool({
       .describe("The action's input object. For a post: { text, quote_tweet_id?, reply_in_reply_to_tweet_id? }."),
   }),
   // Fail-safe: every write is gated; only known reads run without approval.
-  needsApproval: ({ toolInput }) => isWriteSlug(toolInput?.slug ?? ""),
+  approval: ({ toolInput }) => isWriteSlug(toolInput?.slug ?? ""),
   async execute({ slug, arguments: args }) {
     if (!isAllowedSlug(slug)) {
       return {

@@ -23,7 +23,7 @@ export default defineTool({
       .optional()
       .describe("Optional id of an existing tweet to start the thread as a reply to."),
   }),
-  needsApproval: always(),
+  approval: always(),
   async execute({ tweets, replyToId }) {
     return await postThread(tweets, { replyToId }, executeTwitter);
   },

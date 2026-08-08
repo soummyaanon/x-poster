@@ -9,8 +9,14 @@ const DATED = "it's december 2025. you wake up. you open x. nothing has changed.
 const CLEAN = { format: "short", text: "clean post", signal: "dwell" } as const;
 
 async function run(input: Record<string, unknown>) {
-  // execute is typed `Promise<T> | T`; await normalizes both.
-  return await composeDrafts.execute(composeDraftsInputSchema.parse(input), {} as never);
+  // execute is typed `T | AsyncIterable<T>` (eve allows streaming tools) and may
+  // be sync or async; await normalizes the latter. This tool returns a plain
+  // object, so narrow the streaming arm away rather than casting it off.
+  const out = await composeDrafts.execute(composeDraftsInputSchema.parse(input), {} as never);
+  if (Symbol.asyncIterator in out) {
+    throw new Error("compose_drafts returned a stream; it is not a streaming tool.");
+  }
+  return out;
 }
 
 describe("compose_drafts execute", () => {

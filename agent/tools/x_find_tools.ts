@@ -18,7 +18,7 @@ export default defineTool({
       .min(1)
       .describe("What you want to do on X, in plain words. Used to search the action catalog."),
   }),
-  needsApproval: never(),
+  approval: never(),
   async execute({ query }) {
     const tools = await findTwitterTools(query);
     return { tools };
