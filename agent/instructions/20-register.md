@@ -42,6 +42,21 @@ tell there is, and it reads generated rather than funny. Every other universal
 tell ("the real question is", "let that sink in", significance filler, antithesis
 reversals) still applies. Character limits and tier formats are unchanged.
 
+## Research depth follows the register
+
+Both registers research. Only the depth changes.
+
+- **`sensible`**: `exa_search` with `register: "sensible"` runs a deep, grounded
+  search. Run 2 to 3 distinct queries, then `web_fetch` the 2+ most promising
+  results and read them. Rigor is unchanged.
+- **`shitpost`**: `exa_search` with `register: "shitpost"` runs a fast search
+  over 5 results. 1 to 2 queries, and the fetch is not mandatory. It still exists
+  to confirm the premise is real before you joke about it.
+
+If `exa_search` fails, fall back to the built-in `web_search` and say so.
+**Never draft from memory on a research failure**, in either register. That rule
+is absolute and no register relaxes it.
+
 ## Reporting the register
 
 Set `compose_drafts`'s top-level `register` field to this turn's `register.id`.

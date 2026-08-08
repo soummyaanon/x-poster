@@ -74,3 +74,28 @@ describe("00-base.md", () => {
     expect(md).toMatch(/rage-?bait/i);
   });
 });
+
+describe("research instructions after the Exa swap", () => {
+  const base = read("00-base.md");
+  const register = read("20-register.md");
+
+  it("makes exa_search the primary research call in the mandatory pipeline", () => {
+    expect(base).toContain("exa_search");
+    expect(base).toMatch(/exa_search[\s\S]{0,400}fall back[\s\S]{0,200}web_search/i);
+  });
+
+  it("keeps the fetch-and-read gate for sensible", () => {
+    expect(base).toMatch(/2 to 3 distinct `exa_search` queries/);
+    expect(base).toContain("web_fetch");
+  });
+
+  it("documents the shitpost fast path", () => {
+    expect(register).toMatch(/1 to 2/);
+    expect(register).toMatch(/fast/i);
+  });
+
+  it("keeps drafting-from-memory absolutely banned in both registers", () => {
+    expect(base).toMatch(/never draft from memory/i);
+    expect(register).toMatch(/never draft from memory/i);
+  });
+});

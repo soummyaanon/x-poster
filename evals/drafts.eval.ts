@@ -100,9 +100,9 @@ export default CASES.map((c) =>
         t.loadedSkill("shitpost");
       }
 
-      // Order: research before a skill load before composing. toolOrder checks
-      // relative order, and load_skill is the tool the three skills run through.
-      t.toolOrder(["web_search", "load_skill", "compose_drafts"]);
+      // Research (now Exa) before a skill load before composing. toolOrder checks
+      // relative order, and load_skill is the tool the skills run through.
+      t.toolOrder(["exa_search", "load_skill", "compose_drafts"]);
 
       // compose_drafts is called exactly once.
       t.calledTool("compose_drafts", { times: 1 });
@@ -112,7 +112,12 @@ export default CASES.map((c) =>
       // t.calledTool `input` callback, which is evaluated when assertions
       // finalize (after this function body) and so is always too late to
       // capture into a local.
-      const composed = turn.toolCalls.find((call) => call.name === "compose_drafts")?.input as
+      //
+      // findLast, not find: when the tool flags a draft the model is instructed
+      // to rewrite and call again, so the LAST call holds the drafts the user
+      // actually ends up seeing. Grading the first would fail the agent for the
+      // very output it already corrected.
+      const composed = turn.toolCalls.findLast((call) => call.name === "compose_drafts")?.input as
         | ComposeDraftsInput
         | undefined;
 
