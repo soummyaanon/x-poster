@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_REGISTER, type Register, REGISTERS } from "./registers.ts";
 
 export const MAX_TWEET_CHARS = 280;
 // X Premium allows very long single posts; keep them tight and readable.
@@ -108,21 +109,31 @@ export function findDateHits(text: string): string[] {
   return hits;
 }
 
+export interface BannedPattern {
+  readonly label: string;
+  readonly re: RegExp;
+}
+
 /**
- * AI "tells" the humanizer bans (see the Human voice section of the base
- * instructions and agent/instructions/25-humanizer.md). These are detected
- * deterministically so `compose_drafts` can force a rewrite in production, the
- * same way it does for calendar dates, instead of trusting the model's silent
- * self-audit (which has been letting tells through). The drafts eval grades the
- * same list, so the runtime gate and the eval can't drift.
+ * AI "tells" that are banned in EVERY register (see the Human voice section of
+ * the base instructions and agent/instructions/25-humanizer.md). These are
+ * detected deterministically so `compose_drafts` can force a rewrite in
+ * production, the same way it does for calendar dates, instead of trusting the
+ * model's silent self-audit (which has been letting tells through). The drafts
+ * eval grades the same list, so the runtime gate and the eval can't drift.
  *
  * Matched case-insensitively. Kept deliberately tight (see the humanizer's "what
  * NOT to flag"): isolated common words are fine; these target the formulas and
  * clusters that read as machine-written. The dash pattern is here for the eval,
  * which checks raw model output; at runtime the check runs on humanized text
  * (dashes already stripped), so it never double-flags an auto-fixed dash.
+ *
+ * `"X isn't Y, it's Z"` lives here rather than in FORMULA_BANNED on purpose: it
+ * is technically an aphorism shape, but it is the single most notorious AI tell
+ * and grox's slop classifier keys on it. A shitpost using it reads generated,
+ * not funny.
  */
-export const BANNED_PATTERNS: readonly { label: string; re: RegExp }[] = [
+export const UNIVERSAL_BANNED: readonly BannedPattern[] = [
   { label: "em/en/figure dash", re: /[‒–—―]/ },
   { label: `"X isn't Y, it's Z"`, re: /\bisn'?t\b[^.?!\n]{0,40}\bit'?s\b/i },
   // The same antithesis split across two sentences ("It does not make X feel
@@ -155,6 +166,13 @@ export const BANNED_PATTERNS: readonly { label: string; re: RegExp }[] = [
   { label: `"here's what you need to know"`, re: /here'?s what you need to know/i },
   { label: `"great question"`, re: /great question/i },
   { label: `"you're absolutely right"`, re: /you'?re absolutely right/i },
+];
+
+/**
+ * Tired formula shapes. Banned under `sensible`, RELAXED under `shitpost`, where
+ * ironic use of a played-out format is a real comedic move rather than a tell.
+ */
+export const FORMULA_BANNED: readonly BannedPattern[] = [
   // Scoped to the fake-profound noun forms the humanizer actually targets
   // ("Symmetry is the language of trust"), not every "is the X of Y" phrase.
   {
@@ -166,13 +184,42 @@ export const BANNED_PATTERNS: readonly { label: string; re: RegExp }[] = [
 ];
 
 /**
- * AI tells (by label) found in a post body. Empty array means clean.
- * compose_drafts surfaces any hits so the model rewrites, the same contract as
- * findDateHits; the drafts eval asserts the same patterns against raw output.
+ * The full ban list. Unchanged export, preserved so every existing caller keeps
+ * working; it is exactly the sensible-register policy.
  */
-export function findBannedHits(text: string): string[] {
+export const BANNED_PATTERNS: readonly BannedPattern[] = [
+  ...UNIVERSAL_BANNED,
+  ...FORMULA_BANNED,
+];
+
+/** Which deterministic guards run for a given register. */
+export interface GuardPolicy {
+  readonly banned: readonly BannedPattern[];
+  readonly enforceDates: boolean;
+}
+
+const SENSIBLE_POLICY: GuardPolicy = { banned: BANNED_PATTERNS, enforceDates: true };
+const SHITPOST_POLICY: GuardPolicy = { banned: UNIVERSAL_BANNED, enforceDates: false };
+
+/**
+ * The guard policy for a register. `shitpost` relaxes the formula bans and the
+ * calendar-date guard (a dated greentext setup is the format working, not a
+ * violation). Everything in UNIVERSAL_BANNED, the em dash strip, the character
+ * limits, and the no-fabrication rule hold in both registers.
+ */
+export function guardPolicyFor(register: Register = DEFAULT_REGISTER): GuardPolicy {
+  return register === "shitpost" ? SHITPOST_POLICY : SENSIBLE_POLICY;
+}
+
+/**
+ * AI tells (by label) found in a post body under `policy`, defaulting to the
+ * full sensible set. Empty array means clean. compose_drafts surfaces any hits
+ * so the model rewrites, the same contract as findDateHits; the drafts eval
+ * checks the same patterns against raw output.
+ */
+export function findBannedHits(text: string, policy?: GuardPolicy): string[] {
   const hits: string[] = [];
-  for (const { label, re } of BANNED_PATTERNS) {
+  for (const { label, re } of policy?.banned ?? BANNED_PATTERNS) {
     if (re.test(text)) hits.push(label);
   }
   return hits;
@@ -193,6 +240,16 @@ export const composeDraftsInputSchema = z.object({
   // When the user gave a post/link to react to, the source being quoted
   // (a URL or a short label). Lets the UI show "Quoting …" above quote takes.
   quoting: z.string().optional(),
+  // The register this turn's drafts were written in, read from clientContext.
+  // clientContext is model-visible only and unreadable from execute(), so the
+  // model passes it through here; it selects the guard policy applied below.
+  register: z
+    .enum(REGISTERS)
+    .default(DEFAULT_REGISTER)
+    .describe(
+      'The register from this turn\'s context (register.id): "sensible" or "shitpost". ' +
+        "Must match what the user selected; it decides which guards run.",
+    ),
 });
 export type ComposeDraftsInput = z.infer<typeof composeDraftsInputSchema>;
 
@@ -234,7 +291,18 @@ export interface ValidatedDraft {
   readonly units: readonly ValidatedUnit[];
 }
 
-export function validateDrafts(drafts: readonly Draft[]): ValidatedDraft[] {
+/**
+ * Run the deterministic guards over a draft set under `register`'s policy.
+ *
+ * `dateHits` carries **enforced** violations only, so it is always empty under
+ * `shitpost`. An unenforced flag that still reached `toModelOutput` would make
+ * the model rewrite a draft the policy just permitted.
+ */
+export function validateDrafts(
+  drafts: readonly Draft[],
+  register: Register = DEFAULT_REGISTER,
+): ValidatedDraft[] {
+  const policy = guardPolicyFor(register);
   return drafts.map((draft) => {
     const limit = limitFor(draft.format);
     return {
@@ -248,10 +316,10 @@ export function validateDrafts(drafts: readonly Draft[]): ValidatedDraft[] {
           text,
           chars,
           over: chars > limit,
-          dateHits: findDateHits(text),
+          dateHits: policy.enforceDates ? findDateHits(text) : [],
           // Run on the humanized text so an em dash (already converted to a
           // comma) is never flagged here as a tell, only the formulas survive.
-          bannedHits: findBannedHits(text),
+          bannedHits: findBannedHits(text, policy),
         };
       }),
     };

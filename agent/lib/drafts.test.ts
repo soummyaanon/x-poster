@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  BANNED_PATTERNS,
+  FORMULA_BANNED,
   MAX_TWEET_CHARS,
+  UNIVERSAL_BANNED,
   composeDraftsInputSchema,
   countChars,
   findBannedHits,
   findDateHits,
+  guardPolicyFor,
   humanizeText,
   validateDrafts,
 } from "./drafts";
@@ -259,6 +263,145 @@ describe("composeDraftsInputSchema", () => {
           { format: "short", text: "b", signal: "reply" },
         ],
       }).success,
+    ).toBe(false);
+  });
+});
+
+describe("guard policy split", () => {
+  it("partitions BANNED_PATTERNS with nothing dropped and nothing duplicated", () => {
+    expect(UNIVERSAL_BANNED.length + FORMULA_BANNED.length).toBe(BANNED_PATTERNS.length);
+    expect(UNIVERSAL_BANNED).toHaveLength(17);
+    expect(FORMULA_BANNED).toHaveLength(3);
+    const labels = BANNED_PATTERNS.map((p) => p.label);
+    expect(new Set(labels).size).toBe(labels.length);
+  });
+
+  it("keeps the notorious \"X isn't Y, it's Z\" tell universal, not a relaxable formula", () => {
+    const universalLabels = UNIVERSAL_BANNED.map((p) => p.label);
+    expect(universalLabels).toContain(`"X isn't Y, it's Z"`);
+    expect(FORMULA_BANNED.map((p) => p.label)).not.toContain(`"X isn't Y, it's Z"`);
+  });
+
+  it("puts exactly the three relaxable formulas in FORMULA_BANNED", () => {
+    expect(FORMULA_BANNED.map((p) => p.label).sort()).toEqual(
+      [
+        "aphorism formula (not a X but a Y)",
+        "aphorism formula (the X of)",
+        "rule-of-three triplet",
+      ].sort(),
+    );
+  });
+});
+
+describe("guardPolicyFor", () => {
+  it("enforces everything under sensible", () => {
+    const policy = guardPolicyFor("sensible");
+    expect(policy.banned).toHaveLength(BANNED_PATTERNS.length);
+    expect(policy.enforceDates).toBe(true);
+  });
+
+  it("drops the formula bans and the date guard under shitpost", () => {
+    const policy = guardPolicyFor("shitpost");
+    expect(policy.banned).toHaveLength(UNIVERSAL_BANNED.length);
+    expect(policy.enforceDates).toBe(false);
+  });
+
+  it("defaults to sensible when no register is given", () => {
+    expect(guardPolicyFor()).toEqual(guardPolicyFor("sensible"));
+  });
+});
+
+describe("findBannedHits with a policy", () => {
+  const ruleOfThree = "shipping, scaling, and surviving is the whole job";
+  const emDash = "live now — and fast";
+
+  it("flags a rule-of-three triplet under sensible", () => {
+    expect(findBannedHits(ruleOfThree, guardPolicyFor("sensible"))).toContain(
+      "rule-of-three triplet",
+    );
+  });
+
+  it("allows a rule-of-three triplet under shitpost", () => {
+    expect(findBannedHits(ruleOfThree, guardPolicyFor("shitpost"))).toEqual([]);
+  });
+
+  it("flags an em dash under BOTH registers", () => {
+    expect(findBannedHits(emDash, guardPolicyFor("sensible"))).toContain("em/en/figure dash");
+    expect(findBannedHits(emDash, guardPolicyFor("shitpost"))).toContain("em/en/figure dash");
+  });
+
+  it("flags \"X isn't Y, it's Z\" under BOTH registers", () => {
+    const text = "this isn't a feature, it's a whole product";
+    expect(findBannedHits(text, guardPolicyFor("sensible")).length).toBeGreaterThan(0);
+    expect(findBannedHits(text, guardPolicyFor("shitpost")).length).toBeGreaterThan(0);
+  });
+
+  it("defaults to the full sensible set when no policy is passed", () => {
+    expect(findBannedHits(ruleOfThree)).toContain("rule-of-three triplet");
+  });
+});
+
+describe("validateDrafts under a register", () => {
+  const dated = "it's december 2025. you wake up. you open x. nothing has changed.";
+
+  it("reports calendar dates under sensible", () => {
+    const [result] = validateDrafts(
+      [{ format: "short", text: dated, signal: "reply" }],
+      "sensible",
+    );
+    expect(result.units[0].dateHits).toEqual(expect.arrayContaining(["2025"]));
+  });
+
+  it("reports NO calendar dates under shitpost", () => {
+    const [result] = validateDrafts(
+      [{ format: "short", text: dated, signal: "reply" }],
+      "shitpost",
+    );
+    expect(result.units[0].dateHits).toEqual([]);
+  });
+
+  it("reports a rule-of-three tell under sensible but not shitpost", () => {
+    const body = "shipping, scaling, and surviving is the whole job";
+    const [strict] = validateDrafts([{ format: "short", text: body, signal: "reply" }], "sensible");
+    const [loose] = validateDrafts([{ format: "short", text: body, signal: "reply" }], "shitpost");
+    expect(strict.units[0].bannedHits).toContain("rule-of-three triplet");
+    expect(loose.units[0].bannedHits).toEqual([]);
+  });
+
+  it("still strips em dashes and enforces limits under shitpost", () => {
+    const [result] = validateDrafts(
+      [{ format: "short", text: `live now — and fast ${"x".repeat(300)}`, signal: "reply" }],
+      "shitpost",
+    );
+    expect(result.units[0].text).not.toMatch(/[‒–—―]/);
+    expect(result.units[0].over).toBe(true);
+  });
+
+  it("behaves exactly like sensible when the register is omitted", () => {
+    const drafts = [{ format: "short" as const, text: dated, signal: "reply" as const }];
+    expect(validateDrafts(drafts)).toEqual(validateDrafts(drafts, "sensible"));
+  });
+});
+
+describe("composeDraftsInputSchema register field", () => {
+  const twoDrafts = [
+    { format: "short", text: "a", signal: "reply" },
+    { format: "short", text: "b", signal: "dwell" },
+  ];
+
+  it("defaults register to sensible when absent", () => {
+    const parsed = composeDraftsInputSchema.parse({ drafts: twoDrafts });
+    expect(parsed.register).toBe("sensible");
+  });
+
+  it("accepts an explicit shitpost register", () => {
+    const parsed = composeDraftsInputSchema.parse({ drafts: twoDrafts, register: "shitpost" });
+    expect(parsed.register).toBe("shitpost");
+  });
+
+  it("rejects an unknown register", () => {
+    expect(
+      composeDraftsInputSchema.safeParse({ drafts: twoDrafts, register: "spicy" }).success,
     ).toBe(false);
   });
 });
