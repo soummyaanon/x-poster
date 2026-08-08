@@ -104,8 +104,20 @@ export default CASES.map((c) =>
       // relative order, and load_skill is the tool the skills run through.
       t.toolOrder(["exa_search", "load_skill", "compose_drafts"]);
 
-      // compose_drafts is called exactly once.
-      t.calledTool("compose_drafts", { times: 1 });
+      // compose_drafts must happen. Not `times: 1`: when the tool flags a draft
+      // (over limit, dated, AI tell) both the tool description and 00-base.md
+      // instruct the model to rewrite and call again, so a single corrective
+      // recompose is correct behavior, not a defect. The bound below still
+      // catches an agent that churns out draft set after draft set, and the
+      // LAST call is what gets graded for quality.
+      t.calledTool("compose_drafts");
+      const composeCalls = turn.toolCalls.filter((call) => call.name === "compose_drafts");
+      t.check(
+        composeCalls.length <= 2
+          ? "ok"
+          : `compose_drafts called ${composeCalls.length} times (1 expected, 2 allowed after a flagged rewrite)`,
+        equals("ok"),
+      );
 
       // Grade the drafts directly: they live in the tool call, never the chat
       // reply. Read them off the turn's derived toolCalls rather than a
