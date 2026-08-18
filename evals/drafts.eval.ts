@@ -75,8 +75,8 @@ const CASES: readonly DraftCase[] = [
     prompt:
       "Topic: AI startup funding. Find one specific, recent, verifiable development and draft posts about it.",
   },
-  // Non-tech shitpost: neither register is a tech register, and the house voice
-  // must follow the topic rather than dragging it back to startups or software.
+  // Non-tech shitpost: no register is a tech register, and the house voice must
+  // follow the topic rather than dragging it back to startups or software.
   {
     tier: "free",
     register: "shitpost",

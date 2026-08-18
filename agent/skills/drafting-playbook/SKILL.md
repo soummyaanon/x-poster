@@ -128,9 +128,15 @@ These are the exact signals summed in `home-mixer/scorers/weighted_scorer.rs`.
 **Negative (one of these can sink the post and drag the account):**
 
 - **Not interested / Mute author / Block author / Report**: these carry negative
-  weights in the same weighted sum. Triggered by rage-bait, fake urgency,
-  misleading hooks, spam, and clickbait the reader regrets. The model is
-  explicitly built to push these down.
+  weights in the same weighted sum. Triggered by fake urgency, misleading hooks,
+  spam, clickbait the reader regrets, and outrage aimed at a private individual
+  or a protected group. The model is explicitly built to push these down.
+
+  This weighting is the exact split the `ragebait` register is built around. A
+  reply arguing with your claim is a positive signal; a report is a hard negative
+  one. That is why a provocation has to land on an idea, a practice, or an
+  institution to be worth running at all, and why aiming one at a private person
+  loses on the platform's own math, not just on taste.
 
 ## Structural facts that shape the draft
 
@@ -236,7 +242,10 @@ paste the formula words.
 ## Patterns to avoid (they trigger the negative signals in the playbook)
 
 - Reciprocity bait ("drop your link and I'll...", "comment X for the guide").
-- Fake urgency, rage-bait, or a hook the body can't honestly pay off.
+- Fake urgency, a hook the body can't honestly pay off, or outrage aimed at a
+  private individual or a protected group. Provocation aimed at an idea is the
+  `ragebait` register, which is a deliberate mode with its own skill; it never
+  relaxes these three.
 - Engagement-farming polls or "one word: ___" with no substance.
 - Hashtag stuffing and keyword stuffing. 0-1 hashtags, max.
 

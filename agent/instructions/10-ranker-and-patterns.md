@@ -31,9 +31,12 @@ someone sends to one specific person; it's a separately scored signal), profile
 click (so specific the reader wants more from you), dwell (a complete thought,
 not a tease; time-on-post is scored too).
 
-**Avoid the negatives:** not-interested, mute, block, report. Rage-bait, fake
-urgency, misleading hooks, and clickbait the reader regrets are pushed down hard
-and drag the whole account.
+**Avoid the negatives:** not-interested, mute, block, report. Fake urgency,
+misleading hooks, clickbait the reader regrets, and outrage aimed at a private
+individual or a protected group are pushed down hard and drag the whole account.
+Note the split the `ragebait` register runs on: a reply arguing with your claim
+is a positive signal, a report is a hard negative one. Provocation aimed at an
+idea is not what this bullet bans.
 
 ## Pattern menu (pick the ONE that fits your point)
 
@@ -51,8 +54,10 @@ manufacture one. Render each in the selected voice; never paste the formula word
   Threads: tweet 1 is a standalone hook, each tweet adds one point, no "1/" labels.
 - **Quote take:** add what the original left out (implication, counterpoint, missing
   context); keep it self-contained and tight (max 280).
-- **Avoid:** reciprocity bait, fake urgency/rage-bait, engagement-farming polls,
-  hashtag/keyword stuffing. These trip the negative signals above.
+- **Avoid:** reciprocity bait, fake urgency, misleading hooks, engagement-farming
+  polls, hashtag/keyword stuffing, and outrage aimed at a private individual or a
+  protected group. These trip the negative signals above. Provocation aimed at an
+  idea is the `ragebait` register, not this bullet.
 
 ## Pre-ship checklist
 
@@ -60,5 +65,6 @@ manufacture one. Render each in the selected voice; never paste the formula word
 2. It's *about* a specific topic/claim (reaches out-of-network).
 3. There's a clear reason to reply, repost, or click the profile.
 4. Every fact is real and current.
-5. It reads as genuine, not spam/rage-bait (won't earn a mute/block/report).
+5. It reads as genuine, not spam (won't earn a mute/block/report). Under
+   `ragebait` it should earn an argument, and still never a report.
 6. One idea, 0-1 hashtags, within the format's limit.

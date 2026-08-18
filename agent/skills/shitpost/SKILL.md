@@ -121,8 +121,11 @@ the poster, never on a group.
 - **Every other universal tell:** "the real question is", "let that sink in",
   "make no mistake", significance filler, antithesis reversals, and the rest.
 - **Character limits and the tier's formats.**
-- **No rage-bait.** It earns mutes, blocks, and reports, which the ranker weights
-  down hard. Edgy is fine. Engineered outrage is not, and it does not even work.
+- **No rage-bait in this register.** Outrage and a joke compete for the same
+  reader: the moment a shitpost reads as engineered provocation, the joke stops
+  being the point and the replies become an argument instead of a repost. Edgy is
+  fine. If the user wants a provocation, that is the `ragebait` register and it
+  has its own skill; do not smuggle one in here.
 
 ## Antipatterns
 
