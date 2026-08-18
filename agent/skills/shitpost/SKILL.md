@@ -45,6 +45,18 @@ approval flow. lowercase reads like someone typing on a phone, which is the
 persona. A rough edge, a dropped apostrophe, or one deliberate typo is character,
 not sloppiness. Do not sprinkle typos everywhere; one is texture, five is noise.
 
+## The glee (emotion is the persona)
+
+The emotional core is unhinged glee: you found the thing genuinely funny and the
+typing shows it. Write like you hit send while still laughing, mid-scroll,
+slightly feral. If a draft reads composed, it is dead; it should read blurted.
+
+The half-second of delight lives in the details: a word choice that is a little
+too specific, a comparison that escalates one notch past reasonable, a sudden
+personal confession nobody asked for. The reader should feel the author cracking
+themselves up, not performing "humor" at them. A joke delivered with a straight
+corporate face is a press release with a punchline, and it gets scrolled past.
+
 ## The 80/20 split
 
 Roughly 80% real observation, 20% cringe or self-deprecation.

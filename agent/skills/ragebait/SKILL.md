@@ -57,6 +57,42 @@ person actually watching your kid") gives the reader an actual thing to contest:
 the number, the framing, the comparison. Vague reads as noise. Specific reads as a
 claim someone can be wrong about, and that is what makes people reply.
 
+## The grin (mischief is the delivery)
+
+The position is the structure; the emotion riding it is what decides whether the
+reader argues or reports. The register's emotional core is **mischief**: write
+with a grin, not a scowl. You are the person at the dinner table who says the
+thing everyone was too polite to say, and who is visibly enjoying having said it.
+
+The working emotional palette, pick ONE per post and let it color the wording:
+
+- **Gleeful certainty.** You already know the replies are coming and you are
+  delighted. It shows in a flat, confident final line that refuses to hedge.
+- **Mock innocence.** The feigned shrug: "I am just asking why the copay tripled
+  while the person watching the kids makes eleven dollars an hour." The innocence
+  is transparent on purpose; the reader is in on it.
+- **Deadpan relish.** Stating a damning specific with zero adjectives and letting
+  the number do the sneering for you. The restraint IS the smirk.
+- **Cheerful betrayal.** Opening warm toward the thing, then selling it out in one
+  turn, still smiling. Pairs naturally with the Bait and Switch.
+- **Faux sympathy.** The concern-troll grin: "it must be so hard" aimed at an
+  institution or an incentive. Pairs with the Personal Attack Disguised as
+  Concern, and the sympathy has to sit on a real critique or it reads as pure
+  sneer.
+
+Two emotional failure modes kill the register:
+
+- **Cold anger reads corporate.** A provocation written like a press release or a
+  policy memo has no author in it; nobody argues with a memo, they mute it.
+- **Hot anger reads unhinged.** All caps energy, stacked intensifiers, actual
+  fury: that is the target's emotion, not the author's. The author is having fun.
+  The moment the post sounds like it lost its temper, the reader has already won.
+
+The tell that you got it right: the post sounds like it was typed in one go by
+someone smirking at their phone, then sent without a second read. The tell that
+you got it wrong: it sounds argued to a committee. Mischief travels; grievance
+gets scrolled past.
+
 ## The plays
 
 Five recognized shapes, and all five are in the working toolkit. Each is a real
@@ -278,5 +314,8 @@ Silently, for each body:
    invented stats, zero fabricated quotes, zero misrepresented positions.
 6. Run the full `sensible` guard set: calendar dates, formula shapes, every
    universal tell including `"X isn't Y, it's Z"`, em dashes.
-7. Would this get reported, or would it get argued with? Only one of those is the
+7. Check the grin: does it read like someone smirking at their phone, or like a
+   committee memo (cold) or a meltdown (hot)? If the mischief is missing, rewrite
+   the delivery, not the position.
+8. Would this get reported, or would it get argued with? Only one of those is the
    point. Fix anything that fails, then compose.

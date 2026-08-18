@@ -175,7 +175,7 @@ export default CASES.map((c) =>
       t.check(composed.register ?? DEFAULT_REGISTER, equals(register));
 
       // Deterministic quality gate under the CASE's register: tier-correct
-      // formats, within length limits, 2-3 drafts, no banned phrases / em dashes.
+      // formats, within length limits, 2-6 drafts, no banned phrases / em dashes.
       // Empty list == clean.
       t.check(findViolations(c.tier, drafts, register), equals([]));
 

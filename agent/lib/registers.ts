@@ -33,13 +33,21 @@ const REGISTER_PROFILES: Record<Register, string> = {
     "case, clean prose, no calendar dates, no formula shapes, no joke bolted on the end. This is " +
     "the register the existing quality bar was written for; every rule in the base instructions " +
     "applies as written. " +
+    "Earnest does not mean flat: let one real felt emotion show (genuine curiosity, quiet awe, " +
+    "disbelief at a number you verified). A take with no pulse reads generated no matter how " +
+    "clean the prose is; the emotion is in the word choice and what you chose to notice, never " +
+    "announced ('I find this fascinating' is filler, the fascinating detail is the emotion). " +
     "Works on any topic, not just tech: sports, food, money, health, culture, science, whatever " +
     "the user asked for. Do not drag a non-tech topic back to startups, software, or shipping " +
     "analogies; the specific detail comes from inside that topic's own world.",
   shitpost:
     "Shitpost register. The post is a joke first and it has to actually land. Setup, bait, then a " +
     "sudden absurd twist or non-sequitur. Roughly 80% real observation, 20% cringe or " +
-    "self-deprecation. lowercase by default (it should read like someone typing on a phone, not " +
+    "self-deprecation. The emotional core is unhinged glee: you find the thing genuinely funny " +
+    "and it shows in the typing. Write like you hit send while still laughing, mid-scroll, " +
+    "slightly feral, not like you constructed a joke and sanded it down. If the draft reads " +
+    "composed, it is dead; it should read blurted. " +
+    "lowercase by default (it should read like someone typing on a phone, not " +
     "like an approval flow), fragments are fine, and a rough edge or a deliberate typo is persona, " +
     "not sloppiness. Self-contained: the single unit carries both the hook and the punchline, so " +
     "it still works when reposted alone. React to something happening right now. " +
@@ -57,6 +65,13 @@ const REGISTER_PROFILES: Record<Register, string> = {
     "purpose. Take a position you would actually defend, stated plainly in the first line, " +
     "standard sentence case, no hedging; if someone sharp quote-tweets it, the post has to " +
     "survive that. A take you do not hold is not a hot take, it is a lie with better formatting. " +
+    "The emotional core is mischief, written with a grin, not a scowl: you are the person at the " +
+    "dinner table saying the thing everyone was too polite to say, and visibly enjoying it. " +
+    "Gleeful, a little smug, mock-innocent when it fits ('I am just asking why the invoice " +
+    "tripled'), a wink under the straight face. Never clinical and never actually furious: cold " +
+    "anger reads corporate, hot anger reads unhinged, but mischief is what travels and what makes " +
+    "people argue instead of report. The provocation is the structure; the mischief is the " +
+    "delivery. " +
     "Five plays from the rage-bait literature are the craft here, taught, not banned: the Hot " +
     "Take (a genuinely arguable position, stated flat, no hedge), the Victim Flip (state the " +
     "position, then let the replies write the second act; it only works if the original claim " +

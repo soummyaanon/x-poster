@@ -50,12 +50,26 @@ describe("findViolations register handling", () => {
   });
 
   it("still enforces tier formats under shitpost", () => {
-    const wrongTier: Draft = { format: "short", signal: "reply", text: "a joke" };
+    // Threads stay a free-tier format; premium spans short/single/long instead.
+    const wrongTier: Draft = {
+      format: "thread",
+      signal: "reply",
+      tweets: ["a joke", "the middle", "the punchline"],
+    };
     expect(
       findViolations("premium", [wrongTier, CLEAN], "shitpost").some((s) =>
         s.includes("format not allowed"),
       ),
     ).toBe(true);
+  });
+
+  it("allows a short draft on premium (the length range spans down)", () => {
+    const short: Draft = { format: "short", signal: "reply", text: "a punchy take" };
+    expect(
+      findViolations("premium", [short, CLEAN], "shitpost").some((s) =>
+        s.includes("format not allowed"),
+      ),
+    ).toBe(false);
   });
 
   it("defaults to sensible when no register is passed", () => {

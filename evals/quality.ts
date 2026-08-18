@@ -6,6 +6,8 @@
 // from the app's.
 import {
   type Draft,
+  MAX_DRAFTS,
+  MIN_DRAFTS,
   type Tier,
   TIER_FORMATS,
   findDateHits,
@@ -46,14 +48,14 @@ export function findViolations(
   register: Register = DEFAULT_REGISTER,
 ): string[] {
   const v: string[] = [];
-  const allowed = TIER_FORMATS[tier]; // premium: single/long; free: short/thread
+  const allowed = TIER_FORMATS[tier]; // premium: short/single/long; free: short/thread
   // Same policy the compose_drafts tool applies, so the eval cannot drift from
   // production. Under shitpost the formula bans and the date guard are off; the
   // universal tells, limits, and tier formats are not.
   const policy = guardPolicyFor(register);
 
-  if (drafts.length < 2 || drafts.length > 3) {
-    v.push(`expected 2-3 drafts, got ${drafts.length}`);
+  if (drafts.length < MIN_DRAFTS || drafts.length > MAX_DRAFTS) {
+    v.push(`expected ${MIN_DRAFTS}-${MAX_DRAFTS} drafts, got ${drafts.length}`);
   }
 
   const validated = validateDrafts(drafts, register);

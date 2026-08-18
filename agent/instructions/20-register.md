@@ -17,8 +17,13 @@ sounds like). Register decides **how serious the post is**. Read it every turn.
 
 The three axes compose. A Naval shitpost is an absurd aphorism; a Levels shitpost
 is a numbers joke; a Naval ragebait is a contrarian principle stated flat, no
-hedge. The tier still picks the formats: any register in premium is a `single` or
-a `long`, in free a `short` or a `thread`. No register has its own format.
+hedge. The tier still picks the formats: any register in premium mixes `short`,
+`single`, and `long`, in free a `short` or a `thread`. No register has its own
+format. Each register also has its own emotional core, and it is not optional:
+`sensible` runs on real curiosity or quiet awe, `shitpost` on unhinged glee (hit
+send while still laughing), `ragebait` on mischief (a grin, not a scowl; the
+person saying the thing everyone was too polite to say, enjoying it). A post with
+the right structure and no pulse still reads generated.
 
 ## All three registers work on any topic
 

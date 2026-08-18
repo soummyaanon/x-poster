@@ -32,7 +32,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ChevronDownIcon } from "lucide-react";
-import { type Tier, TIERS, TIER_LABELS } from "@/agent/lib/drafts";
+import {
+  DEFAULT_DRAFT_COUNT,
+  DRAFT_COUNT_CHOICES,
+  type Tier,
+  TIERS,
+  TIER_LABELS,
+} from "@/agent/lib/drafts";
 import {
   DEFAULT_REGISTER,
   type Register,
@@ -63,9 +69,10 @@ const EXAMPLES = [
 ] as const;
 
 const FOLLOW_UPS = [
-  "Give me variations on option 1",
+  "Give me 6 fresh variations",
   "Sharper, more contrarian angle",
   "Make them shorter and punchier",
+  "More mischief, less lecture",
   "Pick a new category",
 ] as const;
 
@@ -79,6 +86,9 @@ export function AgentChat() {
   // How serious the post is. Sensible by default, so nothing changes until the
   // user flips the pill. Rides along in clientContext like tier and voice.
   const [register, setRegister] = useState<Register>(DEFAULT_REGISTER);
+  // How many variations to draft per turn. Rides along in clientContext; the
+  // agent produces exactly this many (an explicit ask in the message wins).
+  const [draftCount, setDraftCount] = useState<number>(DEFAULT_DRAFT_COUNT);
   const [voiceId, setVoiceId] = useState<VoiceId>(DEFAULT_VOICE_ID);
   const [customVoice, setCustomVoice] = useState("");
   const [voiceOpen, setVoiceOpen] = useState(false);
@@ -96,6 +106,7 @@ export function AgentChat() {
     await agent.send(trimmed, {
       clientContext: {
         accountTier: tier,
+        draftCount,
         register: resolveRegisterContext(register),
         voice: resolveVoiceContext(
           voiceId === "custom"
@@ -180,10 +191,23 @@ export function AgentChat() {
                   <h1 className="font-medium text-4xl tracking-tighter">Draft posts that rank</h1>
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     Pick a category or type a topic and I&apos;ll research a timely angle, then
-                    hand back copy-paste-ready posts tuned for X&apos;s For You ranking. Paste a
-                    post or link to get quote-post takes. Toggle Premium or Free below for the
-                    right format, and 💡 sensible or 🔥 shitpost for how serious it lands.
+                    hand back ready-to-post drafts tuned for X&apos;s For You ranking. Paste a
+                    post or link for quote takes. Below the box: 💡 sensible, 🔥 shitpost, or
+                    😤 ragebait for the mood, Premium or Free for the format, and ×N for how
+                    many variations you want, short punches to long-form.
                   </p>
+                  <div className="flex flex-wrap items-center justify-center gap-1.5">
+                    {["💡 earnest takes", "🔥 unhinged glee", "😤 mischievous heat"].map(
+                      (chip) => (
+                        <span
+                          className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[11px] text-muted-foreground"
+                          key={chip}
+                        >
+                          {chip}
+                        </span>
+                      ),
+                    )}
+                  </div>
                 </div>
               </ConversationEmptyState>
             ) : (
@@ -231,6 +255,11 @@ export function AgentChat() {
                   register={register}
                 />
                 <TierToggle disabled={isBusy} onChange={setTier} tier={tier} />
+                <VariationsPicker
+                  count={draftCount}
+                  disabled={isBusy}
+                  onChange={setDraftCount}
+                />
                 <VoicePicker
                   customVoice={customVoice}
                   disabled={isBusy}
@@ -343,6 +372,60 @@ function VoicePicker({
               value={customVoice}
             />
           ) : null}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function VariationsPicker({
+  count,
+  disabled,
+  onChange,
+}: {
+  readonly count: number;
+  readonly disabled: boolean;
+  readonly onChange: (count: number) => void;
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          className={cn(
+            "inline-flex items-center gap-0.5 rounded-full border border-border px-2 py-0.5 font-medium text-[11px] transition-colors disabled:opacity-50",
+            count !== DEFAULT_DRAFT_COUNT
+              ? "bg-sky-500/10 text-sky-700 dark:text-sky-400"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+          disabled={disabled}
+          title="How many draft variations to generate each turn"
+          type="button"
+        >
+          ×{count}
+          <ChevronDownIcon className="size-3 shrink-0 opacity-60" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-44 p-1">
+        <p className="px-2 pt-1 pb-1.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
+          Variations per turn
+        </p>
+        <div className="flex flex-col gap-0.5">
+          {DRAFT_COUNT_CHOICES.map((choice) => (
+            <button
+              className={cn(
+                "rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-accent",
+                count === choice && "bg-accent font-medium",
+              )}
+              key={choice}
+              onClick={() => onChange(choice)}
+              type="button"
+            >
+              {choice} drafts
+              {choice === DEFAULT_DRAFT_COUNT ? (
+                <span className="ml-1.5 text-[10px] text-muted-foreground">default</span>
+              ) : null}
+            </button>
+          ))}
         </div>
       </PopoverContent>
     </Popover>

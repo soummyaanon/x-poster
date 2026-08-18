@@ -3,13 +3,17 @@ import { composeDraftsInputSchema, validateDrafts } from "../lib/drafts.ts";
 
 export default defineTool({
   description:
-    "Present the final X drafts to the user. Call exactly once, after research. Produce 2-3 " +
-    "drafts matched to the account tier given in this turn's context (accountTier).\n" +
-    "PREMIUM tier: format \"single\" (one post, can run past 280, target ~200-600 chars) and " +
-    "format \"long\" (a long-form post, ~600-1500 chars). Both go in `text`.\n" +
-    "FREE tier: format \"short\" (one post, max 280 chars, in `text`) and format \"thread\" (a " +
+    "Present the final X drafts to the user. Call exactly once, after research. Produce the " +
+    "number of drafts this turn's context asks for (`draftCount`, default 4, max 6; an explicit " +
+    "count in the user's message wins), matched to the account tier in context (accountTier). " +
+    "Every draft is a genuinely different angle, hook, or emotional read; never a reworded copy.\n" +
+    "PREMIUM tier: mix the lengths. Format \"short\" (punchy, max 280 chars), format \"single\" " +
+    "(one post, can run past 280, target ~200-600 chars), and format \"long\" (a long-form post, " +
+    "~600-1500 chars). In any set of 3+, include at least one \"short\" and one \"single\"; add a " +
+    "\"long\" when the material earns it. All go in `text`.\n" +
+    "FREE tier: format \"short\" posts (max 280 chars, in `text`) plus one format \"thread\" (a " +
     "`tweets` array of 3-6 connected posts, each max 280 chars, no '1/' numbering).\n" +
-    "QUOTE mode (the user gave a post or link to react to): produce 2-3 format \"quote\" drafts, " +
+    "QUOTE mode (the user gave a post or link to react to): produce `draftCount` format \"quote\" drafts, " +
     "each a take to post above the quoted post (max 280 chars, in `text`), and set top-level " +
     "`quoting` to the source URL or a short label.\n" +
     "REGISTER: set top-level `register` to this turn's `register.id` from context (\"sensible\", " +

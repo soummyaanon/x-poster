@@ -244,9 +244,17 @@ describe("composeDraftsInputSchema", () => {
     expect(tooFew.success).toBe(false);
   });
 
-  it("rejects more than four drafts", () => {
+  it("accepts up to six drafts and rejects a seventh", () => {
+    const six = composeDraftsInputSchema.safeParse({
+      drafts: Array.from({ length: 6 }, () => ({
+        format: "short" as const,
+        text: "a",
+        signal: "reply" as const,
+      })),
+    });
+    expect(six.success).toBe(true);
     const tooMany = composeDraftsInputSchema.safeParse({
-      drafts: Array.from({ length: 5 }, () => ({
+      drafts: Array.from({ length: 7 }, () => ({
         format: "short" as const,
         text: "a",
         signal: "reply" as const,

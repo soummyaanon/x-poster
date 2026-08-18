@@ -36,8 +36,10 @@ export const FORMAT_LABELS: Record<Format, string> = {
 };
 
 /**
- * Which tier each format belongs to. `quote` is tier-agnostic (a quote take is
- * just your commentary above someone else's post; it works for either account).
+ * The lowest tier a format is available to. `short` is "free" because anyone can
+ * post 280 chars (premium accounts included; a premium set mixes shorts in for
+ * range). `quote` is tier-agnostic (a quote take is just your commentary above
+ * someone else's post; it works for either account).
  */
 export const FORMAT_TIER: Record<Format, Tier | "quote"> = {
   short: "free",
@@ -47,11 +49,25 @@ export const FORMAT_TIER: Record<Format, Tier | "quote"> = {
   quote: "quote",
 };
 
-/** Formats produced for each account tier in normal (non-quote) compose mode. */
+/**
+ * Formats a draft set may contain for each account tier in normal (non-quote)
+ * compose mode. Premium spans the whole length range on demand: punchy shorts,
+ * medium singles, and long-form. Free stays inside the 280 world.
+ */
 export const TIER_FORMATS: Record<Tier, readonly Format[]> = {
-  premium: ["single", "long"],
+  premium: ["short", "single", "long"],
   free: ["short", "thread"],
 };
+
+/**
+ * How many drafts a turn produces. The UI's variations picker sends the chosen
+ * count in clientContext as `draftCount`; the model honors it (an explicit ask
+ * in the user's message wins over the toggle).
+ */
+export const MIN_DRAFTS = 2;
+export const MAX_DRAFTS = 6;
+export const DEFAULT_DRAFT_COUNT = 4;
+export const DRAFT_COUNT_CHOICES = [2, 3, 4, 5, 6] as const;
 
 // Unicode dashes that read as an "AI tell": figure, en, em, horizontal bar.
 const NUMERIC_RANGE = /(\d)\s*[‒–—―]\s*(\d)/g;
@@ -259,7 +275,7 @@ export const draftSchema = z.object({
 export type Draft = z.infer<typeof draftSchema>;
 
 export const composeDraftsInputSchema = z.object({
-  drafts: z.array(draftSchema).min(2).max(4),
+  drafts: z.array(draftSchema).min(MIN_DRAFTS).max(MAX_DRAFTS),
   // When the user gave a post/link to react to, the source being quoted
   // (a URL or a short label). Lets the UI show "Quoting …" above quote takes.
   quoting: z.string().optional(),
