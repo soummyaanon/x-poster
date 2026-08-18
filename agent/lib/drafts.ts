@@ -200,15 +200,38 @@ export interface GuardPolicy {
 
 const SENSIBLE_POLICY: GuardPolicy = { banned: BANNED_PATTERNS, enforceDates: true };
 const SHITPOST_POLICY: GuardPolicy = { banned: UNIVERSAL_BANNED, enforceDates: false };
+/**
+ * `ragebait` is written in standard sentence case as a serious provocation, not
+ * a joke, so it gets exactly `sensible`'s strictness: a tired formula shape or a
+ * stamped calendar date reads as AI slop under a straight-faced take the same
+ * way it does under `sensible`, even though the topic itself is deliberately
+ * argumentative. Declared as its own const, not an alias for SENSIBLE_POLICY,
+ * because the two registers enforce different editorial rails (five named
+ * plays taught as craft, two rails that never relax: no fabrication, no
+ * targeting a private individual or a protected group; all of that lives in
+ * the profile and the instructions, not in this guard) and may need their own
+ * deterministic pattern later; aliasing them now would make adding one a
+ * breaking change later instead of a diff.
+ */
+const RAGEBAIT_POLICY: GuardPolicy = { banned: BANNED_PATTERNS, enforceDates: true };
+
+const GUARD_POLICIES: Record<Register, GuardPolicy> = {
+  sensible: SENSIBLE_POLICY,
+  shitpost: SHITPOST_POLICY,
+  ragebait: RAGEBAIT_POLICY,
+};
 
 /**
  * The guard policy for a register. `shitpost` relaxes the formula bans and the
  * calendar-date guard (a dated greentext setup is the format working, not a
- * violation). Everything in UNIVERSAL_BANNED, the em dash strip, the character
- * limits, and the no-fabrication rule hold in both registers.
+ * violation). `ragebait` runs the exact same policy as `sensible`: it is a
+ * straight-faced provocation, not a joke, so the tired formula shapes and
+ * calendar dates still read as AI slop rather than as voice. Everything in
+ * UNIVERSAL_BANNED, the em dash strip, the character limits, and the
+ * no-fabrication rule hold in all three registers.
  */
 export function guardPolicyFor(register: Register = DEFAULT_REGISTER): GuardPolicy {
-  return register === "shitpost" ? SHITPOST_POLICY : SENSIBLE_POLICY;
+  return GUARD_POLICIES[register];
 }
 
 /**
@@ -247,8 +270,8 @@ export const composeDraftsInputSchema = z.object({
     .enum(REGISTERS)
     .default(DEFAULT_REGISTER)
     .describe(
-      'The register from this turn\'s context (register.id): "sensible" or "shitpost". ' +
-        "Must match what the user selected; it decides which guards run.",
+      'The register from this turn\'s context (register.id): "sensible", "shitpost", or ' +
+        '"ragebait". Must match what the user selected; it decides which guards run.',
     ),
 });
 export type ComposeDraftsInput = z.infer<typeof composeDraftsInputSchema>;

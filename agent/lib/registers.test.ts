@@ -9,8 +9,8 @@ import {
 } from "./registers";
 
 describe("register catalog", () => {
-  it("has exactly the two registers", () => {
-    expect([...REGISTERS]).toEqual(["sensible", "shitpost"]);
+  it("has exactly the three registers", () => {
+    expect([...REGISTERS]).toEqual(["sensible", "shitpost", "ragebait"]);
   });
 
   it("defaults to sensible", () => {
@@ -23,6 +23,7 @@ describe("register catalog", () => {
     }
     expect(REGISTER_LABELS.shitpost).toContain("shitpost");
     expect(REGISTER_LABELS.sensible).toContain("sensible");
+    expect(REGISTER_LABELS.ragebait).toContain("ragebait");
   });
 });
 
@@ -30,6 +31,7 @@ describe("isRegister", () => {
   it("accepts known ids", () => {
     expect(isRegister("sensible")).toBe(true);
     expect(isRegister("shitpost")).toBe(true);
+    expect(isRegister("ragebait")).toBe(true);
   });
 
   it("rejects unknown ids", () => {
@@ -56,12 +58,32 @@ describe("resolveRegisterContext", () => {
     expect(ctx.profile).toContain("rage-bait");
   });
 
+  it("resolves the ragebait profile", () => {
+    const ctx = resolveRegisterContext("ragebait");
+    expect(ctx.id).toBe("ragebait");
+    expect(ctx.label).toBe(REGISTER_LABELS.ragebait);
+    // The anchor phrase and all five taught plays must reach the model.
+    expect(ctx.profile).toContain("Real premise, real position");
+    expect(ctx.profile).toContain("Hot Take");
+    expect(ctx.profile).toContain("Victim Flip");
+    expect(ctx.profile).toContain("Strawman Setup");
+    expect(ctx.profile).toContain("Bait and Switch");
+    expect(ctx.profile).toContain("Personal Attack Disguised as Concern");
+    // The two rails that never relax: no fabrication, no private individuals
+    // or protected groups, even though the five plays above are taught, not
+    // banned.
+    expect(ctx.profile).toMatch(/never a private individual/i);
+    expect(ctx.profile).toMatch(/protected group/i);
+    expect(ctx.profile).toMatch(/never fabricate/i);
+  });
+
   it("returns only the selected register's profile, never both", () => {
     const sensible = resolveRegisterContext("sensible");
     expect(sensible.profile).not.toContain("Real premise, absurd take");
+    expect(sensible.profile).not.toContain("Victim Flip");
   });
 
-  it("tells both registers they are topic-agnostic, not tech-only", () => {
+  it("tells every register they are topic-agnostic, not tech-only", () => {
     for (const id of REGISTERS) {
       const { profile } = resolveRegisterContext(id);
       expect(profile).toMatch(/any topic/i);
@@ -80,5 +102,6 @@ describe("resolveRegisterContext", () => {
 describe("registerLabel", () => {
   it("returns the label for an id", () => {
     expect(registerLabel("shitpost")).toBe(REGISTER_LABELS.shitpost);
+    expect(registerLabel("ragebait")).toBe(REGISTER_LABELS.ragebait);
   });
 });

@@ -349,6 +349,15 @@ function VoicePicker({
   );
 }
 
+// Selected-state color per register. A lookup rather than a nested ternary so
+// adding a fourth register later is a one-line addition, not a rewrite of the
+// conditional chain.
+const REGISTER_SELECTED_CLASSES: Record<Register, string> = {
+  sensible: "bg-muted text-foreground",
+  shitpost: "bg-orange-500/15 text-orange-700 dark:text-orange-400",
+  ragebait: "bg-red-500/15 text-red-700 dark:text-red-400",
+};
+
 function RegisterToggle({
   disabled,
   onChange,
@@ -362,7 +371,7 @@ function RegisterToggle({
     <span
       className="inline-flex items-center rounded-full border border-border p-0.5"
       role="group"
-      title="Register: Sensible is an earnest researched take, Shitpost is a joke built on a real premise."
+      title="Register: Sensible is an earnest researched take, Shitpost is a joke built on a real premise, Ragebait is a serious provocation you'd actually defend."
     >
       {REGISTERS.map((value) => (
         <button
@@ -370,9 +379,7 @@ function RegisterToggle({
           className={cn(
             "rounded-full px-2 py-0.5 font-medium text-[11px] transition-colors disabled:opacity-50",
             register === value
-              ? value === "shitpost"
-                ? "bg-orange-500/15 text-orange-700 dark:text-orange-400"
-                : "bg-muted text-foreground"
+              ? REGISTER_SELECTED_CLASSES[value]
               : "text-muted-foreground hover:text-foreground",
           )}
           disabled={disabled}

@@ -3,9 +3,15 @@
  * functions so they are testable without a network call; `searchExa` is the thin
  * fetch wrapper the `exa_search` tool runs.
  *
- * Depth is chosen by register: `sensible` gets a deep, grounded synthesis;
- * `shitpost` gets a fast highlights-only pass, because a shitpost still has to
- * verify its premise is real but does not need to deep-read the page.
+ * Depth is chosen by register: `sensible` and `ragebait` both get a deep,
+ * grounded synthesis; `shitpost` gets a fast highlights-only pass, because a
+ * shitpost still has to verify its premise is real but does not need to
+ * deep-read the page. `ragebait` needs the deep path even more than `sensible`
+ * does: a provocation gets fact-checked in the replies, and an unverified
+ * premise is how a rage-bait post turns into a ratio and a Community Note
+ * instead of an argument worth having. The branch below only tests
+ * `register === "shitpost"` for the fast path, so `ragebait` falls through to
+ * the deep path for free; do not add a separate branch for it.
  *
  * API contract per https://docs.exa.ai/reference/search-api-guide-for-coding-agents.
  * Notes that are easy to get wrong and are deliberate here:
@@ -85,7 +91,10 @@ export const exaSearchInputSchema = z.object({
   register: z
     .enum(REGISTERS)
     .default(DEFAULT_REGISTER)
-    .describe("This turn's register.id. Picks deep (sensible) or fast (shitpost) search."),
+    .describe(
+      "This turn's register.id. Picks deep search (sensible, ragebait) or fast search " +
+        "(shitpost).",
+    ),
   includeDomains: z.array(z.string()).optional().describe("Restrict to these domains."),
   excludeDomains: z.array(z.string()).optional().describe("Exclude these domains."),
 });

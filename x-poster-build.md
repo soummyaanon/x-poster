@@ -96,7 +96,7 @@ export default defineAgent({
   // not routed through the Vercel AI Gateway.
   //
   // Set this to the OpenAI model you want to use.
-  model: openai("gpt-5.4-mini"),
+  model: openai("gpt-5.6-terra"),
 });
 ```
 

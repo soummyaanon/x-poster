@@ -25,9 +25,10 @@ describe("instruction file ordering", () => {
 describe("20-register.md", () => {
   const md = read("20-register.md");
 
-  it("names both registers and the default", () => {
+  it("names every register and the default", () => {
     expect(md).toContain("sensible");
     expect(md).toContain("shitpost");
+    expect(md).toContain("ragebait");
     expect(md).toMatch(/default/i);
   });
 
@@ -50,10 +51,30 @@ describe("20-register.md", () => {
     expect(md).not.toMatch(/[‒–—―]/);
   });
 
-  it("states that both registers work on any topic, not just tech", () => {
+  it("states that every register works on any topic, not just tech", () => {
     expect(md).toMatch(/any topic/i);
     expect(md).toMatch(/sports|food|culture|health/i);
     expect(md).toMatch(/do not drag[\s\S]{0,140}(?:startup|software|tech)/i);
+  });
+
+  it("names the third register and its skill load", () => {
+    expect(md).toContain("ragebait");
+    expect(md).toContain('load_skill("ragebait")');
+  });
+
+  it("teaches the ragebait toolkit while keeping the two rails absolute", () => {
+    expect(md).toContain("Real premise, real position");
+    expect(md).toContain("Hot Take");
+    expect(md).toContain("Victim Flip");
+    expect(md).toContain("Strawman Setup");
+    expect(md).toContain("Bait and Switch");
+    expect(md).toContain("Personal Attack Disguised as Concern");
+    expect(md).toMatch(/never a private individual/i);
+    expect(md).toMatch(/protected group/i);
+  });
+
+  it("routes ragebait through the same deep research path as sensible", () => {
+    expect(md).toMatch(/ragebait[\s\S]{0,300}deep/i);
   });
 });
 
@@ -74,10 +95,29 @@ describe("00-base.md", () => {
     expect(md).toMatch(/No calendar dates in the post[^\n]*sensible/i);
   });
 
-  it("keeps the absolute rules absolute", () => {
+  it("keeps the truly absolute rules absolute", () => {
     expect(md).toContain("Never invent");
     expect(md).toContain("No em dashes, ever");
+  });
+
+  // Rage-bait itself is no longer banned in every register: `ragebait` is the
+  // one register built to provoke on purpose, taught through five named plays
+  // (see 20-register.md). It stays banned in `sensible` and `shitpost`, and
+  // fabrication / private-individual / protected-group targeting stay
+  // absolute everywhere. This just confirms the term still appears so the
+  // register-scoping rule was not silently dropped; it is deliberately a
+  // separate test from "keeps the truly absolute rules absolute" above,
+  // because this one is not.
+  it("mentions rage-bait, now register-scoped rather than an absolute ban", () => {
     expect(md).toMatch(/rage-?bait/i);
+  });
+
+  it("dispatches step 3.5 to the ragebait skill too", () => {
+    expect(md).toContain('load_skill("ragebait")');
+  });
+
+  it("keeps the person/protected-group rail visible in the base instructions", () => {
+    expect(md).toMatch(/protected group/i);
   });
 });
 
@@ -100,7 +140,7 @@ describe("research instructions after the Exa swap", () => {
     expect(register).toMatch(/fast/i);
   });
 
-  it("keeps drafting-from-memory absolutely banned in both registers", () => {
+  it("keeps drafting-from-memory absolutely banned in every register", () => {
     expect(base).toMatch(/never draft from memory/i);
     expect(register).toMatch(/never draft from memory/i);
   });

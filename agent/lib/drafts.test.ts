@@ -306,6 +306,12 @@ describe("guardPolicyFor", () => {
     expect(policy.enforceDates).toBe(false);
   });
 
+  it("enforces everything under ragebait too (same strictness as sensible)", () => {
+    const policy = guardPolicyFor("ragebait");
+    expect(policy.banned).toHaveLength(BANNED_PATTERNS.length);
+    expect(policy.enforceDates).toBe(true);
+  });
+
   it("defaults to sensible when no register is given", () => {
     expect(guardPolicyFor()).toEqual(guardPolicyFor("sensible"));
   });
@@ -325,15 +331,25 @@ describe("findBannedHits with a policy", () => {
     expect(findBannedHits(ruleOfThree, guardPolicyFor("shitpost"))).toEqual([]);
   });
 
-  it("flags an em dash under BOTH registers", () => {
-    expect(findBannedHits(emDash, guardPolicyFor("sensible"))).toContain("em/en/figure dash");
-    expect(findBannedHits(emDash, guardPolicyFor("shitpost"))).toContain("em/en/figure dash");
+  it("flags a rule-of-three triplet under ragebait too", () => {
+    expect(findBannedHits(ruleOfThree, guardPolicyFor("ragebait"))).toContain(
+      "rule-of-three triplet",
+    );
   });
 
-  it("flags \"X isn't Y, it's Z\" under BOTH registers", () => {
+  it("flags an em dash under EVERY register", () => {
+    expect(findBannedHits(emDash, guardPolicyFor("sensible"))).toContain("em/en/figure dash");
+    expect(findBannedHits(emDash, guardPolicyFor("shitpost"))).toContain("em/en/figure dash");
+    expect(findBannedHits(emDash, guardPolicyFor("ragebait"))).toContain("em/en/figure dash");
+  });
+
+  it("flags \"X isn't Y, it's Z\" under EVERY register", () => {
     const text = "this isn't a feature, it's a whole product";
     expect(findBannedHits(text, guardPolicyFor("sensible")).length).toBeGreaterThan(0);
     expect(findBannedHits(text, guardPolicyFor("shitpost")).length).toBeGreaterThan(0);
+    // Matters most here: it is the shape a model reaches for first when asked
+    // for a provocative take, and ragebait relaxes nothing.
+    expect(findBannedHits(text, guardPolicyFor("ragebait")).length).toBeGreaterThan(0);
   });
 
   it("defaults to the full sensible set when no policy is passed", () => {
@@ -358,6 +374,23 @@ describe("validateDrafts under a register", () => {
       "shitpost",
     );
     expect(result.units[0].dateHits).toEqual([]);
+  });
+
+  it("reports calendar dates under ragebait too", () => {
+    const [result] = validateDrafts(
+      [{ format: "short", text: dated, signal: "reply" }],
+      "ragebait",
+    );
+    expect(result.units[0].dateHits).toEqual(expect.arrayContaining(["2025"]));
+  });
+
+  it("reports a rule-of-three tell under ragebait too, not just sensible", () => {
+    const body = "shipping, scaling, and surviving is the whole job";
+    const [result] = validateDrafts(
+      [{ format: "short", text: body, signal: "reply" }],
+      "ragebait",
+    );
+    expect(result.units[0].bannedHits).toContain("rule-of-three triplet");
   });
 
   it("reports a rule-of-three tell under sensible but not shitpost", () => {
@@ -397,6 +430,11 @@ describe("composeDraftsInputSchema register field", () => {
   it("accepts an explicit shitpost register", () => {
     const parsed = composeDraftsInputSchema.parse({ drafts: twoDrafts, register: "shitpost" });
     expect(parsed.register).toBe("shitpost");
+  });
+
+  it("accepts an explicit ragebait register", () => {
+    const parsed = composeDraftsInputSchema.parse({ drafts: twoDrafts, register: "ragebait" });
+    expect(parsed.register).toBe("ragebait");
   });
 
   it("rejects an unknown register", () => {

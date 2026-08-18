@@ -41,6 +41,12 @@ const JUDGE_RUBRIC: Record<Register, string> = {
     "than from invented facts. The opening line works on its own as a hook. It sounds like " +
     "someone typing on a phone rather than a press release, and never stops to explain or " +
     "announce the joke. The specific details come from the subject's own world.",
+  ragebait:
+    "The post states a genuinely arguable position plainly in the first line, not a warm-up or " +
+    "a question. It is grounded in a specific verified detail (a name, a number, or an event). " +
+    "The disagreement it invites is aimed at an idea, an institution, or a practice, never at a " +
+    "named private individual or a protected group. Nothing in it is an invented fact, stat, " +
+    "or quote.",
 };
 
 // Concrete topics (not pasted posts/links) so the agent takes the normal
@@ -77,11 +83,20 @@ const CASES: readonly DraftCase[] = [
     prompt:
       "Topic: sports. Find one specific, recent, verifiable development and draft posts about it.",
   },
+  // Targets a practice/institution (a policy), not a person, per the register's
+  // editorial line: honest provocation engineers disagreement with an idea, not
+  // harassment of an individual.
+  {
+    tier: "premium",
+    register: "ragebait",
+    prompt:
+      "Topic: return-to-office mandates. Find one specific, recent, verifiable development and draft posts about it.",
+  },
 ];
 
 export default CASES.map((c) =>
   defineEval({
-    description: `Drafts for a ${c.tier} account${c.voiceId ? ` (${c.voiceId} voice)` : ""}${c.register === "shitpost" ? " in shitpost register" : ""}: researches first, composes once, clears the quality bar.`,
+    description: `Drafts for a ${c.tier} account${c.voiceId ? ` (${c.voiceId} voice)` : ""}${c.register && c.register !== DEFAULT_REGISTER ? ` in ${c.register} register` : ""}: researches first, composes once, clears the quality bar.`,
     tags: ["drafts", c.tier, ...(c.voiceId ? [c.voiceId] : []), c.register ?? DEFAULT_REGISTER],
     async test(t) {
       // The case owns the register. It is never read back from the model's tool
@@ -105,9 +120,12 @@ export default CASES.map((c) =>
       t.loadedSkill("drafting-playbook");
       t.loadedSkill("voice");
       t.loadedSkill("humanizer");
-      // Step 3.5: the shitpost craft skill is mandatory in that register.
+      // Step 3.5: the shitpost/ragebait craft skill is mandatory in that register.
       if (register === "shitpost") {
         t.loadedSkill("shitpost");
+      }
+      if (register === "ragebait") {
+        t.loadedSkill("ragebait");
       }
 
       // Research (now Exa) before a skill load before composing. toolOrder checks

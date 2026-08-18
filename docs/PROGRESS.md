@@ -15,7 +15,7 @@ angle → returns ready-to-paste drafts optimized for the X "For You" ranker.
 
 ## Done this session
 
-- **Agent**: `compose_drafts` tool (structured drafts) · `agent/agent.ts` model `openai("gpt-5.4")`
+- **Agent**: `compose_drafts` tool (structured drafts) · `agent/agent.ts` model `openai("gpt-5.6-terra")`
 - **Three formats per topic** — one **short** (≤280), one **long-form** (~600–1500), one **thread** (3–6 tweets). Schema/validation in `agent/lib/drafts.ts`.
 - **Deep research** + only-fetch-real-URLs (no guessed-URL 404s) + verify facts; instructions in `agent/instructions.md`.
 - **Playbook** grounded in `xai-org/x-algorithm` (`agent/skills/x_algorithm_playbook.md`).

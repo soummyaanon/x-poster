@@ -12,15 +12,16 @@ export default defineTool({
     "QUOTE mode (the user gave a post or link to react to): produce 2-3 format \"quote\" drafts, " +
     "each a take to post above the quoted post (max 280 chars, in `text`), and set top-level " +
     "`quoting` to the source URL or a short label.\n" +
-    "REGISTER: set top-level `register` to this turn's `register.id` from context (\"sensible\" or " +
-    "\"shitpost\"). It selects which guards run, so report it honestly; never send \"shitpost\" " +
-    "when the user has sensible selected. Under \"sensible\" (the default) calendar dates and " +
-    "formula shapes are rejected. Under \"shitpost\" a calendar date and an ironic formula are " +
-    "allowed, and lowercase is expected.\n" +
+    "REGISTER: set top-level `register` to this turn's `register.id` from context (\"sensible\", " +
+    "\"shitpost\", or \"ragebait\"). It selects which guards run, so report it honestly; never " +
+    "send a register the user did not select. Under \"sensible\" and \"ragebait\" calendar dates " +
+    "and formula shapes are both rejected, same strictness, because a straight-faced take reads " +
+    "as AI slop with a tired formula or a stamped date either way. Under \"shitpost\" a calendar " +
+    "date and an ironic formula are allowed, and lowercase is expected.\n" +
     "For each draft set `format`, `signal`, and an optional one-line `note`. `text`/`tweets` is " +
     "the post body only: no preamble, numbering, or surrounding quotes. Never use em dashes. The " +
     "tool also flags AI tells (antithesis reversals like \"it does not X, it Ys\", \"the real " +
-    "question is\", significance filler) in BOTH registers; if it flags a draft as over the " +
+    "question is\", significance filler) in EVERY register; if it flags a draft as over the " +
     "limit, dated, or full of tells, rewrite that draft and call it again. Calling this tool IS " +
     "how the user sees the drafts; never also print them as text.",
   inputSchema: composeDraftsInputSchema,

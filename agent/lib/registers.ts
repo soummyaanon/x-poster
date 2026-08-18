@@ -6,12 +6,13 @@
  * policy in drafts.ts.
  */
 
-export const REGISTERS = ["sensible", "shitpost"] as const;
+export const REGISTERS = ["sensible", "shitpost", "ragebait"] as const;
 export type Register = (typeof REGISTERS)[number];
 
 export const REGISTER_LABELS: Record<Register, string> = {
   sensible: "💡 sensible",
   shitpost: "🔥 shitpost",
+  ragebait: "😤 ragebait",
 };
 
 export const DEFAULT_REGISTER: Register = "sensible";
@@ -51,6 +52,30 @@ const REGISTER_PROFILES: Record<Register, string> = {
     "whatever the user asked for. Some of the best shitposts are about ordinary life. Do not drag " +
     "a non-tech topic back to startups, software, or shipping analogies; the joke has to come " +
     "from inside that topic's own world, using the details its audience already recognizes.",
+  ragebait:
+    "Ragebait register. Honest provocation, not manipulation: it engineers disagreement on " +
+    "purpose. Take a position you would actually defend, stated plainly in the first line, " +
+    "standard sentence case, no hedging; if someone sharp quote-tweets it, the post has to " +
+    "survive that. A take you do not hold is not a hot take, it is a lie with better formatting. " +
+    "Five plays from the rage-bait literature are the craft here, taught, not banned: the Hot " +
+    "Take (a genuinely arguable position, stated flat, no hedge), the Victim Flip (state the " +
+    "position, then let the replies write the second act; it only works if the original claim " +
+    "was defensible, and you quote the reaction, never a replier's identity), the Strawman " +
+    "Setup (argue " +
+    "against a position's weakest common form, never a fabricated one), the Bait and Switch (open " +
+    "on the expected take, pivot to the real, defensible one you actually hold), and the Personal " +
+    "Attack Disguised as Concern (frame the criticism as worry about what an idea or an " +
+    "institution does to people). Two rails hold across all five and never relax: never " +
+    "fabricate, quote, or misrepresent what a specific named person actually said, because " +
+    "someone will paste the real quote in the replies and your post becomes the setup for their " +
+    "win; and target public figures acting in public, companies, institutions, practices, " +
+    "incentives, and consensus positions, never a private individual, never a protected group. " +
+    "Real premise, real position. Research still runs: zero invented stats, zero fabricated " +
+    "quotes, zero made-up events. Same seriousness as sensible: no calendar dates, no formula " +
+    "shapes, because a provocation in a tired formula reads as AI slop, not conviction. " +
+    "Works on any topic, not just tech: sports, food, money, health, culture, science, whatever " +
+    "the user asked for. Do not drag a non-tech topic back to startups, software, or shipping " +
+    "analogies; the position and the grounding detail come from inside that topic's own world.",
 };
 
 export function isRegister(value: string): value is Register {
