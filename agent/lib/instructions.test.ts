@@ -121,11 +121,23 @@ describe("00-base.md", () => {
   });
 });
 
-describe("research instructions after the Exa swap", () => {
+describe("research instructions after the reason-first policy", () => {
   const base = read("00-base.md");
   const register = read("20-register.md");
 
-  it("makes exa_search the primary research call in the mandatory pipeline", () => {
+  it("gates the search on need, decided by reasoning first", () => {
+    expect(base).toMatch(/decide, then research/i);
+    expect(base).toMatch(/search not needed/i);
+    expect(base).not.toMatch(/always research first/i);
+  });
+
+  it("names the legitimate skip cases", () => {
+    expect(base).toMatch(/pasted the source material/i);
+    expect(base).toMatch(/already covers the claim|already verified/i);
+    expect(base).toMatch(/opinion/i);
+  });
+
+  it("makes exa_search the primary research call when research runs", () => {
     expect(base).toContain("exa_search");
     expect(base).toMatch(/exa_search[\s\S]{0,400}fall back[\s\S]{0,200}web_search/i);
   });
@@ -140,8 +152,11 @@ describe("research instructions after the Exa swap", () => {
     expect(register).toMatch(/fast/i);
   });
 
-  it("keeps drafting-from-memory absolutely banned in every register", () => {
-    expect(base).toMatch(/never draft from memory/i);
-    expect(register).toMatch(/never draft from memory/i);
+  // The skip path never licenses inventing: unverified specifics stay banned in
+  // every register, and a failed search still never falls back to memory.
+  it("keeps verification absolute even when the search is skipped", () => {
+    expect(base).toMatch(/verified against a\s+source this session/i);
+    expect(base).toMatch(/never draft from memory on a research failure/i);
+    expect(register).toMatch(/never draft from memory on a research failure/i);
   });
 });

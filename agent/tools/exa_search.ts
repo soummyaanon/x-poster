@@ -11,7 +11,11 @@ interface ExaToolResult {
 
 export default defineTool({
   description:
-    "Primary research search. Depth follows this turn's register.\n" +
+    "Primary research search. Call it when the drafts need fresh or checkable information: " +
+    "news, a trending angle, a specific fact/number/quote headed for a post, or a premise you " +
+    "only half know. Skip it when the user supplied the material, a revision leaves the facts " +
+    "alone, or this session already verified the claim; a checkable specific still never goes " +
+    "in a draft unverified. Depth follows this turn's register.\n" +
     "SENSIBLE: a deep, grounded search that returns a source-backed synthesis. Run 2-3 distinct " +
     "queries with different angles, then web_fetch the 2+ most promising URLs and actually read " +
     "them. Research rigor is unchanged.\n" +

@@ -115,8 +115,10 @@ export default CASES.map((c) =>
       // The turn finished without failing or parking on a question.
       t.succeeded();
 
-      // Mandatory drafting pipeline (00-base.md): research, then load all three
-      // deep skills, then compose. The loads are not optional.
+      // Mandatory drafting pipeline (00-base.md): decide on research, then load
+      // all three deep skills, then compose. The loads are not optional, and
+      // every case here asks for something recent and verifiable, so research
+      // is required on these turns.
       t.loadedSkill("drafting-playbook");
       t.loadedSkill("voice");
       t.loadedSkill("humanizer");

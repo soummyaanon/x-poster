@@ -42,7 +42,10 @@ its cadence.
 
 `sensible` and `ragebait` both run on a real, verified premise argued straight.
 `shitpost` runs on a real, verified premise with an absurd take stacked on top.
-Either way, research runs before you draft; nothing here is optional.
+Either way, a premise that carries a checkable claim gets verified before you
+draft; the verification itself is never optional, only the search is, when the
+premise is already verified or the user supplied it (see the base pipeline's
+decide-then-research step).
 
 **Real premise, absurd take** is the shitpost line: the thing you are reacting to
 must be **real and verified**, and the joke layered on top may be hyperbole, an
@@ -129,7 +132,9 @@ that actually backfires.
 
 ## Research depth follows the register
 
-Every register researches. Only the depth changes.
+Whether research runs at all is decided in the base pipeline: reason first,
+search when the drafts need fresh or checkable information. When research runs,
+only the depth changes by register.
 
 - **`sensible`** and **`ragebait`**: `exa_search` with that `register.id` runs a
   deep, grounded search. Run 2 to 3 distinct queries, then `web_fetch` the 2+
